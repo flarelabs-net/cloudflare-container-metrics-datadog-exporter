@@ -12,8 +12,8 @@ Exports Cloudflare Containers metrics to Datadog using the [Cloudflare GraphQL A
 ### Installation
 
 ```bash
-git clone https://github.com/cloudflare/containers-metrics-exporter.git
-cd containers-metrics-exporter
+git clone https://github.com/flarelabs-net/cloudflare-container-metrics-datadog-exporter.git
+cd cloudflare-container-metrics-datadog-exporter
 npm install
 ```
 
@@ -36,6 +36,7 @@ curl "http://localhost:8787/cdn-cgi/handler/scheduled"
 
 ```bash
 npx wrangler deploy
+npx wrangler secret bulk .dev.vars
 ```
 
 ## Metrics

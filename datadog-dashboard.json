@@ -113,7 +113,7 @@
 					{
 						"id": 21,
 						"definition": {
-							"title": "CPU Load by Application (P50)",
+							"title": "CPU Load by Application (P50, vCPU)",
 							"title_size": "16",
 							"title_align": "left",
 							"show_legend": true,
@@ -145,7 +145,7 @@
 					{
 						"id": 22,
 						"definition": {
-							"title": "CPU Load P90 by Application",
+							"title": "CPU Load P90 by Application (vCPU)",
 							"title_size": "16",
 							"title_align": "left",
 							"show_legend": true,
@@ -177,7 +177,7 @@
 					{
 						"id": 23,
 						"definition": {
-							"title": "CPU Load - Top 10 Applications",
+							"title": "CPU Load - Top 10 Applications (vCPU)",
 							"title_size": "16",
 							"title_align": "left",
 							"type": "toplist",
@@ -206,7 +206,7 @@
 					{
 						"id": 24,
 						"definition": {
-							"title": "CPU Load Heatmap by Placement",
+							"title": "CPU Load Heatmap by Placement (vCPU)",
 							"title_size": "16",
 							"title_align": "left",
 							"type": "heatmap",
@@ -241,7 +241,7 @@
 					{
 						"id": 31,
 						"definition": {
-							"title": "Memory Usage by Application (P50)",
+							"title": "Memory Usage by Application (P50, MiB)",
 							"title_size": "16",
 							"title_align": "left",
 							"show_legend": true,
@@ -250,7 +250,7 @@
 							"type": "timeseries",
 							"requests": [
 								{
-									"formulas": [{ "formula": "query1 / 1000000000" }],
+									"formulas": [{ "formula": "query1" }],
 									"queries": [
 										{
 											"name": "query1",
@@ -273,7 +273,7 @@
 					{
 						"id": 32,
 						"definition": {
-							"title": "Memory Usage P90 by Application",
+							"title": "Memory Usage P90 by Application (MiB)",
 							"title_size": "16",
 							"title_align": "left",
 							"show_legend": true,
@@ -282,7 +282,7 @@
 							"type": "timeseries",
 							"requests": [
 								{
-									"formulas": [{ "formula": "query1 / 1000000000" }],
+									"formulas": [{ "formula": "query1" }],
 									"queries": [
 										{
 											"name": "query1",
@@ -305,7 +305,7 @@
 					{
 						"id": 33,
 						"definition": {
-							"title": "Memory Usage - Top 10 Applications (GB)",
+							"title": "Memory Usage - Top 10 Applications (MiB)",
 							"title_size": "16",
 							"title_align": "left",
 							"type": "toplist",
@@ -313,7 +313,7 @@
 								{
 									"formulas": [
 										{
-											"formula": "query1 / 1000000000",
+											"formula": "query1",
 											"limit": { "count": 10, "order": "desc" }
 										}
 									],
@@ -334,13 +334,13 @@
 					{
 						"id": 34,
 						"definition": {
-							"title": "Memory Usage Heatmap by Placement",
+							"title": "Memory Usage Heatmap by Placement (MiB)",
 							"title_size": "16",
 							"title_align": "left",
 							"type": "heatmap",
 							"requests": [
 								{
-									"formulas": [{ "formula": "query1 / 1000000000" }],
+									"formulas": [{ "formula": "query1" }],
 									"queries": [
 										{
 											"name": "query1",
@@ -369,7 +369,7 @@
 					{
 						"id": 41,
 						"definition": {
-							"title": "Disk Usage P90 by Application (GB)",
+							"title": "Disk Usage P90 by Application (MB)",
 							"title_size": "16",
 							"title_align": "left",
 							"show_legend": true,
@@ -378,7 +378,7 @@
 							"type": "timeseries",
 							"requests": [
 								{
-									"formulas": [{ "formula": "query1 / 1000000000" }],
+									"formulas": [{ "formula": "query1" }],
 									"queries": [
 										{
 											"name": "query1",
@@ -401,7 +401,7 @@
 					{
 						"id": 42,
 						"definition": {
-							"title": "Disk Usage - Top 10 Applications (GB)",
+							"title": "Disk Usage - Top 10 Applications (MB)",
 							"title_size": "16",
 							"title_align": "left",
 							"type": "toplist",
@@ -409,7 +409,7 @@
 								{
 									"formulas": [
 										{
-											"formula": "query1 / 1000000000",
+											"formula": "query1",
 											"limit": { "count": 10, "order": "desc" }
 										}
 									],
@@ -557,14 +557,14 @@
 					{
 						"formulas": [
 							{
-								"alias": "CPU P50",
+								"alias": "CPU P50 (vCPU)",
 								"formula": "query1",
 								"limit": { "count": 50, "order": "desc" }
 							},
-							{ "alias": "CPU P90", "formula": "query2" },
-							{ "alias": "Memory P50 (GB)", "formula": "query3 / 1000000000" },
-							{ "alias": "Memory P90 (GB)", "formula": "query4 / 1000000000" },
-							{ "alias": "Disk P90 (GB)", "formula": "query5 / 1000000000" }
+							{ "alias": "CPU P90 (vCPU)", "formula": "query2" },
+							{ "alias": "Memory P50 (MiB)", "formula": "query3" },
+							{ "alias": "Memory P90 (MiB)", "formula": "query4" },
+							{ "alias": "Disk P90 (MB)", "formula": "query5" }
 						],
 						"queries": [
 							{
