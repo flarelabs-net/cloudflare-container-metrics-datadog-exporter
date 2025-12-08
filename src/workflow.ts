@@ -3,9 +3,11 @@ import {
 	type WorkflowEvent,
 	type WorkflowStep,
 } from "cloudflare:workers";
+import pAll from "p-all";
 import { createCloudflareApi } from "./api/cloudflare";
 import { createDatadogApi } from "./api/datadog";
 import { formatHealthMetrics, formatMetricsForContainer } from "./metrics";
+import { chunk } from "./utils";
 
 /**
  * Calculate the metrics time window.
@@ -40,6 +42,11 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 			this.env.CLOUDFLARE_API_TOKEN,
 		);
 
+		const datadog = createDatadogApi(
+			this.env.DATADOG_API_KEY,
+			this.env.DATADOG_SITE,
+		);
+
 		const { start, end } = getMetricsTimeWindow();
 		console.log("Workflow started", {
 			start: start.toISOString(),
@@ -56,10 +63,6 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 				const healthMetrics = formatHealthMetrics(
 					this.env.CLOUDFLARE_ACCOUNT_ID,
 					result,
-				);
-				const datadog = createDatadogApi(
-					this.env.DATADOG_API_KEY,
-					this.env.DATADOG_SITE,
 				);
 				await datadog.sendMetrics(healthMetrics);
 
@@ -86,18 +89,25 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 						metricsGroups,
 					);
 
-					if (metrics.length > 0) {
-						const datadog = createDatadogApi(
-							this.env.DATADOG_API_KEY,
-							this.env.DATADOG_SITE,
-						);
-						await datadog.sendMetrics(metrics);
-					}
+					const batches = chunk(metrics, 25000);
+
+					await pAll(
+						batches.map(
+							(batch, i) => () =>
+								step.do(
+									`send batch ${i + 1}/${batches.length} (${batch.length} metrics)`,
+									STEP_CONFIG,
+									async () => {
+										await datadog.sendMetrics(batch);
+									},
+								),
+						),
+						{ concurrency: 6 },
+					);
 
 					return metrics.length;
 				},
 			);
-
 			totalMetrics += count;
 		}
 
