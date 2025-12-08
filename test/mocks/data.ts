@@ -10,45 +10,9 @@ import type {
 export const mockContainers: Container[] = [
 	{
 		id: "app-123-abc",
-		created_at: new Date("2025-01-01T00:00:00Z"),
-		updated_at: new Date("2025-01-15T12:00:00Z"),
-		account_id: "test-account-id",
 		name: "my-web-app",
-		version: 3,
-		scheduling_policy: "regional",
 		instances: 5,
 		max_instances: 10,
-		configuration: {
-			image: "registry.example.com/my-web-app:latest",
-			wrangler_ssh: { enabled: false },
-			authorized_keys: [],
-			ssh_public_key_ids: [],
-			secrets: [],
-			instance_type: "standard",
-			vcpu: 2,
-			memory: "512Mi",
-			memory_mib: 512,
-			disk: { size_gb: 10 },
-			environment_variables: [{ name: "NODE_ENV", value: "production" }],
-			labels: [],
-			network: {},
-			command: [],
-			entrypoint: ["node", "server.js"],
-			dns: {},
-			ports: [{ port: 8080, protocol: "tcp" }],
-			checks: [],
-			provisioner: {},
-			observability: {},
-			durable_object_offset_instances: 0,
-		},
-		constraints: { region: ["us-east"] },
-		jobs: false,
-		affinities: { colocation: "spread", hardware_generation: "gen2" },
-		priorities: {},
-		durable_objects: {},
-		scheduling_hint: {},
-		active_rollout_id: "rollout-456",
-		rollout_active_grace_period: 300,
 		health: {
 			instances: {
 				active: 5,
@@ -64,45 +28,9 @@ export const mockContainers: Container[] = [
 	},
 	{
 		id: "app-456-def",
-		created_at: new Date("2025-02-01T00:00:00Z"),
-		updated_at: new Date("2025-02-10T08:30:00Z"),
-		account_id: "test-account-id",
 		name: "api-service",
-		version: 1,
-		scheduling_policy: "regional",
 		instances: 3,
 		max_instances: 5,
-		configuration: {
-			image: "registry.example.com/api-service:v1.2.0",
-			wrangler_ssh: { enabled: false },
-			authorized_keys: [],
-			ssh_public_key_ids: [],
-			secrets: [],
-			instance_type: "standard",
-			vcpu: 1,
-			memory: "256Mi",
-			memory_mib: 256,
-			disk: { size_gb: 5 },
-			environment_variables: [],
-			labels: [],
-			network: {},
-			command: [],
-			entrypoint: [],
-			dns: {},
-			ports: [{ port: 3000, protocol: "tcp" }],
-			checks: [],
-			provisioner: {},
-			observability: {},
-			durable_object_offset_instances: 0,
-		},
-		constraints: { region: ["eu-west"] },
-		jobs: false,
-		affinities: { colocation: "spread", hardware_generation: "gen2" },
-		priorities: {},
-		durable_objects: {},
-		scheduling_hint: {},
-		active_rollout_id: "rollout-789",
-		rollout_active_grace_period: 300,
 		health: {
 			instances: {
 				active: 3,
@@ -116,7 +44,7 @@ export const mockContainers: Container[] = [
 			errors: [],
 		},
 	},
-] as Container[];
+];
 
 /**
  * Mock metrics groups for a single container
@@ -126,8 +54,6 @@ export const mockMetricsGroups: MetricsGroup[] = [
 		avg: {
 			cpuLoad: 0.25,
 			memory: 268435456, // 256 MB
-			rxBandwidthBps: 1024000,
-			txBandwidthBps: 512000,
 		},
 		max: {
 			cpuLoad: 0.75,
@@ -160,8 +86,6 @@ export const mockMetricsGroups: MetricsGroup[] = [
 		avg: {
 			cpuLoad: 0.15,
 			memory: 134217728, // 128 MB
-			rxBandwidthBps: 512000,
-			txBandwidthBps: 256000,
 		},
 		max: {
 			cpuLoad: 0.45,
@@ -228,8 +152,6 @@ export function createMockMetricsGroup(
 		avg: {
 			cpuLoad: 0.25,
 			memory: 268435456,
-			rxBandwidthBps: 1024000,
-			txBandwidthBps: 512000,
 			...overrides.avg,
 		},
 		max: {

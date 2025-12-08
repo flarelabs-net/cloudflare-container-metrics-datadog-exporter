@@ -29,5 +29,9 @@
 		"typescript": "^5.0.4",
 		"vitest": "~3.0.0",
 		"wrangler": "^4.53.0"
+	},
+	"dependencies": {
+		"p-all": "^5.0.1",
+		"zod": "^4.1.13"
 	}
 }

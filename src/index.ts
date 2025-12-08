@@ -1,13 +1,5 @@
 export { MetricsExporterWorkflow } from "./workflow";
 
-export interface Env {
-	CLOUDFLARE_API_TOKEN: string;
-	CLOUDFLARE_ACCOUNT_ID: string;
-	DATADOG_API_KEY: string;
-	DATADOG_SITE?: string;
-	METRICS_WORKFLOW: Workflow;
-}
-
 const REQUIRED_ENV_VARS = [
 	"CLOUDFLARE_API_TOKEN",
 	"CLOUDFLARE_ACCOUNT_ID",

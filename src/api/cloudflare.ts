@@ -1,7 +1,8 @@
-import type {
+import { z } from "zod/v4";
+import {
 	CloudchamberMetricsResponse,
 	Container,
-	MetricsGroup,
+	type MetricsGroup,
 } from "../types";
 
 export interface CloudflareApiConfig {
@@ -9,12 +10,12 @@ export interface CloudflareApiConfig {
 	apiToken: string;
 }
 
-export interface ContainersListResponse {
-	success: boolean;
-	result: Container[];
-	errors: unknown[];
-	messages: unknown[];
-}
+const ContainersListResponseSchema = z.object({
+	success: z.boolean(),
+	result: z.array(Container),
+	errors: z.array(z.unknown()).optional(),
+	messages: z.array(z.unknown()).optional(),
+});
 
 export interface GraphQLResponse<T> {
 	data: T | null;
@@ -22,10 +23,10 @@ export interface GraphQLResponse<T> {
 }
 
 const CONTAINERS_METRICS_QUERY = `
-query GetCloudchamberMetrics($accountTag: string!, $datetimeStart: Time, $datetimeEnd: Time, $applicationId: string) {
+query GetCloudchamberMetrics($accountTag: string!, $datetimeStart: Time, $datetimeEnd: Time, $applicationIds: [string!]) {
   viewer {
     accounts(filter: {accountTag: $accountTag}) {
-      cloudchamberMetricsAdaptiveGroups(limit: 10000, filter: {applicationId: $applicationId, datetimeMinute_geq: $datetimeStart, datetimeMinute_leq: $datetimeEnd}) {
+      cloudchamberMetricsAdaptiveGroups(limit: 10000, filter: {applicationId_in: $applicationIds, datetimeMinute_geq: $datetimeStart, datetimeMinute_leq: $datetimeEnd}) {
         avg {
           memory
           cpuLoad
@@ -91,7 +92,7 @@ export class CloudflareApi {
 			);
 		}
 
-		const data = (await response.json()) as ContainersListResponse;
+		const data = ContainersListResponseSchema.parse(await response.json());
 
 		if (!data.success) {
 			throw new Error(`API error: ${JSON.stringify(data.errors)}`);
@@ -101,13 +102,13 @@ export class CloudflareApi {
 	}
 
 	/**
-	 * Get metrics for a specific container application
-	 * @param applicationId - The container application ID
+	 * Get metrics for multiple container applications
+	 * @param applicationIds - Array of container application IDs
 	 * @param startTime - Start of the time range (defaults to 5 minutes ago)
 	 * @param endTime - End of the time range (defaults to now)
 	 */
 	async getContainerMetrics(
-		applicationId: string,
+		applicationIds: string[],
 		startTime?: Date,
 		endTime?: Date,
 	): Promise<MetricsGroup[]> {
@@ -118,7 +119,7 @@ export class CloudflareApi {
 			accountTag: this.config.accountId,
 			datetimeStart: start.toISOString(),
 			datetimeEnd: now.toISOString(),
-			applicationId,
+			applicationIds,
 		};
 
 		const response = await fetch(this.graphqlUrl, {
@@ -136,7 +137,7 @@ export class CloudflareApi {
 			);
 		}
 
-		const data = (await response.json()) as CloudchamberMetricsResponse;
+		const data = CloudchamberMetricsResponse.parse(await response.json());
 
 		if (data.errors && data.errors.length > 0) {
 			throw new Error(`GraphQL errors: ${JSON.stringify(data.errors)}`);
@@ -144,8 +145,9 @@ export class CloudflareApi {
 
 		const groups =
 			data.data?.viewer?.accounts?.[0]?.cloudchamberMetricsAdaptiveGroups ?? [];
+
 		console.log("Fetched container metrics", {
-			applicationId,
+			applicationCount: applicationIds.length,
 			groupCount: groups.length,
 		});
 

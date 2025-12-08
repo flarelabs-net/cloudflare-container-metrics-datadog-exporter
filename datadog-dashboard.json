@@ -25,7 +25,7 @@
 							{
 								"name": "query1",
 								"data_source": "metrics",
-								"query": "sum:cloudflare.containers.instances.total.max{*}"
+								"query": "sum:cloudflare.containers.instances.max{$application_name}"
 							}
 						],
 						"response_format": "timeseries",
@@ -68,27 +68,27 @@
 							{
 								"name": "query1",
 								"data_source": "metrics",
-								"query": "sum:cloudflare.containers.instances.total.healthy{*}"
+								"query": "sum:cloudflare.containers.instances.healthy{$application_name}"
 							},
 							{
 								"name": "query2",
 								"data_source": "metrics",
-								"query": "sum:cloudflare.containers.instances.total.starting{*}"
+								"query": "sum:cloudflare.containers.instances.starting{$application_name}"
 							},
 							{
 								"name": "query3",
 								"data_source": "metrics",
-								"query": "sum:cloudflare.containers.instances.total.scheduling{*}"
+								"query": "sum:cloudflare.containers.instances.scheduling{$application_name}"
 							},
 							{
 								"name": "query4",
 								"data_source": "metrics",
-								"query": "sum:cloudflare.containers.instances.total.failed{*}"
+								"query": "sum:cloudflare.containers.instances.failed{$application_name}"
 							},
 							{
 								"name": "query5",
 								"data_source": "metrics",
-								"query": "sum:cloudflare.containers.instances.total.stopped{*}"
+								"query": "sum:cloudflare.containers.instances.stopped{$application_name}"
 							}
 						],
 						"response_format": "timeseries",

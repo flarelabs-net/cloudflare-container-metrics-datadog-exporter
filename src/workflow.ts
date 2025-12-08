@@ -5,7 +5,6 @@ import {
 } from "cloudflare:workers";
 import { createCloudflareApi } from "./api/cloudflare";
 import { createDatadogApi } from "./api/datadog";
-import type { Env } from "./index";
 import { formatHealthMetrics, formatMetricsForContainer } from "./metrics";
 
 /**
@@ -69,13 +68,14 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 		);
 
 		let totalMetrics = 0;
+
 		for (const container of containers) {
 			const count = await step.do(
 				`export metrics: ${container.name}`,
 				STEP_CONFIG,
 				async () => {
 					const metricsGroups = await cloudflare.getContainerMetrics(
-						container.id,
+						[container.id],
 						start,
 						end,
 					);
@@ -86,21 +86,21 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 						metricsGroups,
 					);
 
-					if (metrics.length === 0) {
-						return 0;
+					if (metrics.length > 0) {
+						const datadog = createDatadogApi(
+							this.env.DATADOG_API_KEY,
+							this.env.DATADOG_SITE,
+						);
+						await datadog.sendMetrics(metrics);
 					}
-
-					const datadog = createDatadogApi(
-						this.env.DATADOG_API_KEY,
-						this.env.DATADOG_SITE,
-					);
-					await datadog.sendMetrics(metrics);
 
 					return metrics.length;
 				},
 			);
+
 			totalMetrics += count;
 		}
+
 		return { status: "completed", metricsCount: totalMetrics };
 	}
 }
