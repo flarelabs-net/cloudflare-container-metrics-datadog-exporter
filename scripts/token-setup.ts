@@ -1,4 +1,4 @@
-import { writeFile } from "node:fs/promises";
+import { writeFile, readFile } from "node:fs/promises";
 import { setTimeout } from "node:timers/promises";
 import consola from "consola";
 import open from "open";
@@ -56,6 +56,11 @@ DATADOG_API_KEY=${ddApiKey}`;
 if (ddSite && typeof ddSite === "string" && ddSite.trim()) {
 	envContent += `\nDATADOG_SITE=${ddSite.trim()}`;
 }
+
+// Add accountId to wrangler.jsonc
+const wranglerJson = JSON.parse(await readFile("./wrangler.jsonc", "utf-8"));
+wranglerJson.account_id = accountId;
+await writeFile("./wrangler.jsonc", JSON.stringify(wranglerJson, null, 2));
 
 await writeFile(".dev.vars", envContent);
 consola.success("Created .dev.vars file:");
