@@ -75,13 +75,13 @@ Use `instances.total.max - instances.total.healthy` to calculate available capac
 
 ### Resource Metrics
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `cpu` | gauge | CPU load |
-| `memory` | gauge | Memory usage (bytes) |
-| `disk` | gauge | Disk usage (bytes) |
-| `bandwidth.rx` | count | Bytes received |
-| `bandwidth.tx` | count | Bytes transmitted |
+| Metric | Type | Unit | Description |
+|--------|------|------|-------------|
+| `cpu` | gauge | vCPU | CPU load |
+| `memory` | gauge | MiB | Memory usage |
+| `disk` | gauge | MB | Disk usage |
+| `bandwidth.rx` | count | bytes | Bytes received |
+| `bandwidth.tx` | count | bytes | Bytes transmitted |
 
 **Tags:** `account_id`, `application_id`, `application_name`, `deployment_id`, `placement_id`, `stat`
 
