@@ -57,6 +57,9 @@ export class DatadogApi {
 		if (!response.ok) {
 			const text = await response.text();
 			throw new Error(`Datadog API error (${response.status}): ${text}`);
+		} else {
+			// This way we can avoid worker logs about stalled http responses
+			await response.text();
 		}
 	}
 }
