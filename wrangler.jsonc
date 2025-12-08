@@ -1,0 +1,19 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "containers-metrics-exporter",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-11-17",
+	"observability": {
+		"enabled": true
+	},
+	"triggers": {
+		"crons": ["* * * * *"]
+	},
+	"workflows": [
+		{
+			"binding": "METRICS_WORKFLOW",
+			"class_name": "MetricsExporterWorkflow",
+			"name": "metrics-exporter-workflow"
+		}
+	]
+}

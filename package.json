@@ -1,0 +1,33 @@
+{
+	"name": "cloudflare-container-metrics-datadog-exporter",
+	"description": "Export Cloudflare Containers metrics to Datadog using the GraphQL Analytics API",
+	"version": "0.0.0",
+	"private": true,
+	"license": "MIT",
+	"type": "module",
+	"engines": {
+		"node": ">=22.6.0"
+	},
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"start": "wrangler dev",
+		"dev": "wrangler dev",
+		"cf-typegen": "wrangler types",
+		"typecheck": "tsgo",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"test": "vitest",
+		"token-setup": "node scripts/token-setup.ts"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"@cloudflare/vitest-pool-workers": "^0.10.0",
+		"@types/node": "^24.10.1",
+		"@typescript/native-preview": "^7.0.0-dev.20250601",
+		"consola": "^3.4.2",
+		"open": "^11.0.0",
+		"typescript": "^5.0.4",
+		"vitest": "~3.0.0",
+		"wrangler": "^4.53.0"
+	}
+}

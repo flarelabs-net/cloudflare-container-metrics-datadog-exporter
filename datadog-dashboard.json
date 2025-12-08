@@ -1,0 +1,638 @@
+{
+	"title": "Cloudflare Containers Overview",
+	"description": "Real-time metrics for Cloudflare Containers",
+	"widgets": [
+		{
+			"id": 1,
+			"definition": {
+				"title": "Instance Health & Capacity",
+				"title_size": "16",
+				"title_align": "left",
+				"show_legend": true,
+				"legend_layout": "auto",
+				"legend_columns": ["avg", "min", "max", "value"],
+				"type": "timeseries",
+				"requests": [
+					{
+						"formulas": [
+							{
+								"alias": "Available Capacity",
+								"formula": "query1",
+								"style": { "palette": "gray", "palette_index": 1 }
+							}
+						],
+						"queries": [
+							{
+								"name": "query1",
+								"data_source": "metrics",
+								"query": "sum:cloudflare.containers.instances.total.max{*}"
+							}
+						],
+						"response_format": "timeseries",
+						"style": {
+							"palette": "gray",
+							"line_type": "solid",
+							"line_width": "normal"
+						},
+						"display_type": "area"
+					},
+					{
+						"formulas": [
+							{
+								"alias": "Healthy",
+								"formula": "query1",
+								"style": { "palette": "green" }
+							},
+							{
+								"alias": "Starting",
+								"formula": "query2",
+								"style": { "palette": "blue" }
+							},
+							{
+								"alias": "Scheduling",
+								"formula": "query3",
+								"style": { "palette": "purple" }
+							},
+							{
+								"alias": "Failed",
+								"formula": "query4",
+								"style": { "palette": "red" }
+							},
+							{
+								"alias": "Stopped",
+								"formula": "query5",
+								"style": { "palette": "gray" }
+							}
+						],
+						"queries": [
+							{
+								"name": "query1",
+								"data_source": "metrics",
+								"query": "sum:cloudflare.containers.instances.total.healthy{*}"
+							},
+							{
+								"name": "query2",
+								"data_source": "metrics",
+								"query": "sum:cloudflare.containers.instances.total.starting{*}"
+							},
+							{
+								"name": "query3",
+								"data_source": "metrics",
+								"query": "sum:cloudflare.containers.instances.total.scheduling{*}"
+							},
+							{
+								"name": "query4",
+								"data_source": "metrics",
+								"query": "sum:cloudflare.containers.instances.total.failed{*}"
+							},
+							{
+								"name": "query5",
+								"data_source": "metrics",
+								"query": "sum:cloudflare.containers.instances.total.stopped{*}"
+							}
+						],
+						"response_format": "timeseries",
+						"style": {
+							"palette": "semantic",
+							"line_type": "solid",
+							"line_width": "normal"
+						},
+						"display_type": "area"
+					}
+				]
+			},
+			"layout": { "x": 0, "y": 0, "width": 12, "height": 4 }
+		},
+		{
+			"id": 20,
+			"definition": {
+				"title": "CPU Utilization",
+				"type": "group",
+				"layout_type": "ordered",
+				"widgets": [
+					{
+						"id": 21,
+						"definition": {
+							"title": "CPU Load by Application (Avg)",
+							"title_size": "16",
+							"title_align": "left",
+							"show_legend": true,
+							"legend_layout": "auto",
+							"legend_columns": ["avg", "min", "max", "value"],
+							"type": "timeseries",
+							"requests": [
+								{
+									"formulas": [{ "formula": "query1" }],
+									"queries": [
+										{
+											"name": "query1",
+											"data_source": "metrics",
+											"query": "avg:cloudflare.containers.cpu{stat:avg,$application_name} by {application_name}"
+										}
+									],
+									"response_format": "timeseries",
+									"style": {
+										"palette": "dog_classic",
+										"line_type": "solid",
+										"line_width": "normal"
+									},
+									"display_type": "line"
+								}
+							]
+						},
+						"layout": { "x": 0, "y": 0, "width": 6, "height": 3 }
+					},
+					{
+						"id": 22,
+						"definition": {
+							"title": "CPU Load P90 by Application",
+							"title_size": "16",
+							"title_align": "left",
+							"show_legend": true,
+							"legend_layout": "auto",
+							"legend_columns": ["avg", "min", "max", "value"],
+							"type": "timeseries",
+							"requests": [
+								{
+									"formulas": [{ "formula": "query1" }],
+									"queries": [
+										{
+											"name": "query1",
+											"data_source": "metrics",
+											"query": "avg:cloudflare.containers.cpu{stat:p90,$application_name} by {application_name}"
+										}
+									],
+									"response_format": "timeseries",
+									"style": {
+										"palette": "warm",
+										"line_type": "solid",
+										"line_width": "normal"
+									},
+									"display_type": "line"
+								}
+							]
+						},
+						"layout": { "x": 6, "y": 0, "width": 6, "height": 3 }
+					},
+					{
+						"id": 23,
+						"definition": {
+							"title": "CPU Load - Top 10 Applications",
+							"title_size": "16",
+							"title_align": "left",
+							"type": "toplist",
+							"requests": [
+								{
+									"formulas": [
+										{
+											"formula": "query1",
+											"limit": { "count": 10, "order": "desc" }
+										}
+									],
+									"queries": [
+										{
+											"name": "query1",
+											"data_source": "metrics",
+											"query": "avg:cloudflare.containers.cpu{stat:avg,$application_name} by {application_name}",
+											"aggregator": "avg"
+										}
+									],
+									"response_format": "scalar"
+								}
+							]
+						},
+						"layout": { "x": 0, "y": 3, "width": 6, "height": 3 }
+					},
+					{
+						"id": 24,
+						"definition": {
+							"title": "CPU Load Heatmap by Placement",
+							"title_size": "16",
+							"title_align": "left",
+							"type": "heatmap",
+							"requests": [
+								{
+									"formulas": [{ "formula": "query1" }],
+									"queries": [
+										{
+											"name": "query1",
+											"data_source": "metrics",
+											"query": "avg:cloudflare.containers.cpu{stat:avg,$application_name} by {placement_id}"
+										}
+									],
+									"response_format": "timeseries",
+									"style": { "palette": "dog_classic" }
+								}
+							]
+						},
+						"layout": { "x": 6, "y": 3, "width": 6, "height": 3 }
+					}
+				]
+			},
+			"layout": { "x": 0, "y": 6, "width": 12, "height": 7 }
+		},
+		{
+			"id": 30,
+			"definition": {
+				"title": "Memory Utilization",
+				"type": "group",
+				"layout_type": "ordered",
+				"widgets": [
+					{
+						"id": 31,
+						"definition": {
+							"title": "Memory Usage by Application (Avg)",
+							"title_size": "16",
+							"title_align": "left",
+							"show_legend": true,
+							"legend_layout": "auto",
+							"legend_columns": ["avg", "min", "max", "value"],
+							"type": "timeseries",
+							"requests": [
+								{
+									"formulas": [{ "formula": "query1 / 1000000000" }],
+									"queries": [
+										{
+											"name": "query1",
+											"data_source": "metrics",
+											"query": "avg:cloudflare.containers.memory{stat:avg,$application_name} by {application_name}"
+										}
+									],
+									"response_format": "timeseries",
+									"style": {
+										"palette": "cool",
+										"line_type": "solid",
+										"line_width": "normal"
+									},
+									"display_type": "line"
+								}
+							]
+						},
+						"layout": { "x": 0, "y": 0, "width": 6, "height": 3 }
+					},
+					{
+						"id": 32,
+						"definition": {
+							"title": "Memory Usage P90 by Application",
+							"title_size": "16",
+							"title_align": "left",
+							"show_legend": true,
+							"legend_layout": "auto",
+							"legend_columns": ["avg", "min", "max", "value"],
+							"type": "timeseries",
+							"requests": [
+								{
+									"formulas": [{ "formula": "query1 / 1000000000" }],
+									"queries": [
+										{
+											"name": "query1",
+											"data_source": "metrics",
+											"query": "avg:cloudflare.containers.memory{stat:p90,$application_name} by {application_name}"
+										}
+									],
+									"response_format": "timeseries",
+									"style": {
+										"palette": "purple",
+										"line_type": "solid",
+										"line_width": "normal"
+									},
+									"display_type": "line"
+								}
+							]
+						},
+						"layout": { "x": 6, "y": 0, "width": 6, "height": 3 }
+					},
+					{
+						"id": 33,
+						"definition": {
+							"title": "Memory Usage - Top 10 Applications (GB)",
+							"title_size": "16",
+							"title_align": "left",
+							"type": "toplist",
+							"requests": [
+								{
+									"formulas": [
+										{
+											"formula": "query1 / 1000000000",
+											"limit": { "count": 10, "order": "desc" }
+										}
+									],
+									"queries": [
+										{
+											"name": "query1",
+											"data_source": "metrics",
+											"query": "avg:cloudflare.containers.memory{stat:avg,$application_name} by {application_name}",
+											"aggregator": "avg"
+										}
+									],
+									"response_format": "scalar"
+								}
+							]
+						},
+						"layout": { "x": 0, "y": 3, "width": 6, "height": 3 }
+					},
+					{
+						"id": 34,
+						"definition": {
+							"title": "Memory Usage Heatmap by Placement",
+							"title_size": "16",
+							"title_align": "left",
+							"type": "heatmap",
+							"requests": [
+								{
+									"formulas": [{ "formula": "query1 / 1000000000" }],
+									"queries": [
+										{
+											"name": "query1",
+											"data_source": "metrics",
+											"query": "avg:cloudflare.containers.memory{stat:avg,$application_name} by {placement_id}"
+										}
+									],
+									"response_format": "timeseries",
+									"style": { "palette": "cool" }
+								}
+							]
+						},
+						"layout": { "x": 6, "y": 3, "width": 6, "height": 3 }
+					}
+				]
+			},
+			"layout": { "x": 0, "y": 13, "width": 12, "height": 7 }
+		},
+		{
+			"id": 40,
+			"definition": {
+				"title": "Disk Usage",
+				"type": "group",
+				"layout_type": "ordered",
+				"widgets": [
+					{
+						"id": 41,
+						"definition": {
+							"title": "Disk Usage P90 by Application (GB)",
+							"title_size": "16",
+							"title_align": "left",
+							"show_legend": true,
+							"legend_layout": "auto",
+							"legend_columns": ["avg", "min", "max", "value"],
+							"type": "timeseries",
+							"requests": [
+								{
+									"formulas": [{ "formula": "query1 / 1000000000" }],
+									"queries": [
+										{
+											"name": "query1",
+											"data_source": "metrics",
+											"query": "avg:cloudflare.containers.disk{stat:p90,$application_name} by {application_name}"
+										}
+									],
+									"response_format": "timeseries",
+									"style": {
+										"palette": "orange",
+										"line_type": "solid",
+										"line_width": "normal"
+									},
+									"display_type": "line"
+								}
+							]
+						},
+						"layout": { "x": 0, "y": 0, "width": 6, "height": 3 }
+					},
+					{
+						"id": 42,
+						"definition": {
+							"title": "Disk Usage - Top 10 Applications (GB)",
+							"title_size": "16",
+							"title_align": "left",
+							"type": "toplist",
+							"requests": [
+								{
+									"formulas": [
+										{
+											"formula": "query1 / 1000000000",
+											"limit": { "count": 10, "order": "desc" }
+										}
+									],
+									"queries": [
+										{
+											"name": "query1",
+											"data_source": "metrics",
+											"query": "avg:cloudflare.containers.disk{stat:p90,$application_name} by {application_name}",
+											"aggregator": "avg"
+										}
+									],
+									"response_format": "scalar"
+								}
+							]
+						},
+						"layout": { "x": 6, "y": 0, "width": 6, "height": 3 }
+					}
+				]
+			},
+			"layout": { "x": 0, "y": 20, "width": 12, "height": 4 }
+		},
+		{
+			"id": 50,
+			"definition": {
+				"title": "Network Bandwidth",
+				"type": "group",
+				"layout_type": "ordered",
+				"widgets": [
+					{
+						"id": 51,
+						"definition": {
+							"title": "Network RX by Application",
+							"title_size": "16",
+							"title_align": "left",
+							"show_legend": true,
+							"legend_layout": "auto",
+							"legend_columns": ["avg", "min", "max", "value", "sum"],
+							"type": "timeseries",
+							"requests": [
+								{
+									"formulas": [{ "formula": "query1 / 1000000" }],
+									"queries": [
+										{
+											"name": "query1",
+											"data_source": "metrics",
+											"query": "sum:cloudflare.containers.bandwidth.rx{$application_name} by {application_name}.as_rate()"
+										}
+									],
+									"response_format": "timeseries",
+									"style": {
+										"palette": "green",
+										"line_type": "solid",
+										"line_width": "normal"
+									},
+									"display_type": "area"
+								}
+							]
+						},
+						"layout": { "x": 0, "y": 0, "width": 6, "height": 3 }
+					},
+					{
+						"id": 52,
+						"definition": {
+							"title": "Network TX by Application",
+							"title_size": "16",
+							"title_align": "left",
+							"show_legend": true,
+							"legend_layout": "auto",
+							"legend_columns": ["avg", "min", "max", "value", "sum"],
+							"type": "timeseries",
+							"requests": [
+								{
+									"formulas": [{ "formula": "query1 / 1000000" }],
+									"queries": [
+										{
+											"name": "query1",
+											"data_source": "metrics",
+											"query": "sum:cloudflare.containers.bandwidth.tx{$application_name} by {application_name}.as_rate()"
+										}
+									],
+									"response_format": "timeseries",
+									"style": {
+										"palette": "blue",
+										"line_type": "solid",
+										"line_width": "normal"
+									},
+									"display_type": "area"
+								}
+							]
+						},
+						"layout": { "x": 6, "y": 0, "width": 6, "height": 3 }
+					},
+					{
+						"id": 53,
+						"definition": {
+							"title": "Total Network Traffic (RX + TX)",
+							"title_size": "16",
+							"title_align": "left",
+							"show_legend": true,
+							"legend_layout": "auto",
+							"legend_columns": ["avg", "min", "max", "value"],
+							"type": "timeseries",
+							"requests": [
+								{
+									"formulas": [
+										{ "alias": "RX", "formula": "query1 / 1000000" },
+										{ "alias": "TX", "formula": "query2 / 1000000" }
+									],
+									"queries": [
+										{
+											"name": "query1",
+											"data_source": "metrics",
+											"query": "sum:cloudflare.containers.bandwidth.rx{$application_name}.as_rate()"
+										},
+										{
+											"name": "query2",
+											"data_source": "metrics",
+											"query": "sum:cloudflare.containers.bandwidth.tx{$application_name}.as_rate()"
+										}
+									],
+									"response_format": "timeseries",
+									"style": {
+										"palette": "dog_classic",
+										"line_type": "solid",
+										"line_width": "normal"
+									},
+									"display_type": "area"
+								}
+							]
+						},
+						"layout": { "x": 0, "y": 3, "width": 12, "height": 3 }
+					}
+				]
+			},
+			"layout": { "x": 0, "y": 24, "width": 12, "height": 7 }
+		},
+		{
+			"id": 60,
+			"definition": {
+				"title": "Application Resource Table",
+				"title_size": "16",
+				"title_align": "left",
+				"type": "query_table",
+				"requests": [
+					{
+						"formulas": [
+							{
+								"alias": "CPU Avg",
+								"formula": "query1",
+								"limit": { "count": 50, "order": "desc" }
+							},
+							{ "alias": "CPU P90", "formula": "query2" },
+							{ "alias": "Memory Avg (GB)", "formula": "query3 / 1000000000" },
+							{ "alias": "Memory P90 (GB)", "formula": "query4 / 1000000000" },
+							{ "alias": "Disk P90 (GB)", "formula": "query5 / 1000000000" }
+						],
+						"queries": [
+							{
+								"name": "query1",
+								"data_source": "metrics",
+								"query": "avg:cloudflare.containers.cpu{stat:avg,$application_name} by {application_name}",
+								"aggregator": "avg"
+							},
+							{
+								"name": "query2",
+								"data_source": "metrics",
+								"query": "avg:cloudflare.containers.cpu{stat:p90,$application_name} by {application_name}",
+								"aggregator": "avg"
+							},
+							{
+								"name": "query3",
+								"data_source": "metrics",
+								"query": "avg:cloudflare.containers.memory{stat:avg,$application_name} by {application_name}",
+								"aggregator": "avg"
+							},
+							{
+								"name": "query4",
+								"data_source": "metrics",
+								"query": "avg:cloudflare.containers.memory{stat:p90,$application_name} by {application_name}",
+								"aggregator": "avg"
+							},
+							{
+								"name": "query5",
+								"data_source": "metrics",
+								"query": "avg:cloudflare.containers.disk{stat:p90,$application_name} by {application_name}",
+								"aggregator": "avg"
+							}
+						],
+						"response_format": "scalar"
+					}
+				],
+				"has_search_bar": "auto",
+				"custom_links": [
+					{
+						"label": "View Application Details",
+						"link": "/dashboard/{{dashboard_id}}?tpl_var_application_name={{application_name.value}}"
+					}
+				]
+			},
+			"layout": { "x": 0, "y": 31, "width": 12, "height": 4 }
+		}
+	],
+	"template_variables": [
+		{
+			"name": "application_name",
+			"prefix": "application_name",
+			"available_values": [],
+			"default": "*"
+		},
+		{
+			"name": "deployment_id",
+			"prefix": "deployment_id",
+			"available_values": [],
+			"default": "*"
+		},
+		{
+			"name": "placement_id",
+			"prefix": "placement_id",
+			"available_values": [],
+			"default": "*"
+		}
+	],
+	"layout_type": "ordered",
+	"notify_list": [],
+	"reflow_type": "fixed"
+}
