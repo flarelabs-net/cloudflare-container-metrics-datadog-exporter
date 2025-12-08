@@ -24,8 +24,8 @@ describe("formatMetricsForContainer", () => {
 			TEST_TIMESTAMP,
 		);
 
-		// 4 CPU + 4 Memory + 3 Disk + 2 Bandwidth = 13 metrics per group
-		expect(metrics).toHaveLength(13);
+		// 4 CPU + 4 Memory + 4 Disk + 2 Bandwidth = 14 metrics per group
+		expect(metrics).toHaveLength(14);
 	});
 
 	it("formats multiple metrics groups", () => {
@@ -37,8 +37,8 @@ describe("formatMetricsForContainer", () => {
 			TEST_TIMESTAMP,
 		);
 
-		// 2 groups * 13 metrics = 26 metrics
-		expect(metrics).toHaveLength(26);
+		// 2 groups * 14 metrics = 28 metrics
+		expect(metrics).toHaveLength(28);
 	});
 
 	it("includes correct tags", () => {
@@ -61,7 +61,7 @@ describe("formatMetricsForContainer", () => {
 
 		const cpuMetric = metrics.find(
 			(m) =>
-				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:avg"),
+				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
 		);
 
 		expect(cpuMetric).toBeDefined();
@@ -99,8 +99,8 @@ describe("formatContainerMetrics", () => {
 			TEST_TIMESTAMP,
 		);
 
-		// 4 CPU + 4 Memory + 3 Disk + 2 Bandwidth = 13 metrics per group
-		expect(metrics).toHaveLength(13);
+		// 4 CPU + 4 Memory + 4 Disk + 2 Bandwidth = 14 metrics per group
+		expect(metrics).toHaveLength(14);
 	});
 
 	it("formats metrics for multiple containers with multiple groups", () => {
@@ -121,8 +121,8 @@ describe("formatContainerMetrics", () => {
 			TEST_TIMESTAMP,
 		);
 
-		// 3 groups * 13 metrics = 39 metrics
-		expect(metrics).toHaveLength(39);
+		// 3 groups * 14 metrics = 42 metrics
+		expect(metrics).toHaveLength(42);
 	});
 
 	it("includes correct tags for each metric", () => {
@@ -150,7 +150,7 @@ describe("formatContainerMetrics", () => {
 
 		const cpuMetric = metrics.find(
 			(m) =>
-				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:avg"),
+				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
 		);
 
 		expect(cpuMetric).toBeDefined();
@@ -161,20 +161,14 @@ describe("formatContainerMetrics", () => {
 		);
 		expect(cpuMetric?.tags).toContain("deployment_id:deploy-test");
 		expect(cpuMetric?.tags).toContain("placement_id:place-test");
-		expect(cpuMetric?.tags).toContain("stat:avg");
+		expect(cpuMetric?.tags).toContain("stat:p50");
 	});
 
 	it("uses correct metric values from the group", () => {
 		const group = createMockMetricsGroup({
-			avg: {
-				cpuLoad: 0.42,
-				memory: 123456789,
-				rxBandwidthBps: 0,
-				txBandwidthBps: 0,
-			},
 			max: { cpuLoad: 0.99, memory: 999999999, diskUsage: 5000000000 },
 			quantiles: {
-				cpuLoadP50: 0.3,
+				cpuLoadP50: 0.42,
 				cpuLoadP90: 0.8,
 				cpuLoadP99: 0.95,
 				memoryP50: 100000000,
@@ -200,12 +194,12 @@ describe("formatContainerMetrics", () => {
 			TEST_TIMESTAMP,
 		);
 
-		// Check CPU avg
-		const cpuAvg = metrics.find(
+		// Check CPU p50
+		const cpuP50 = metrics.find(
 			(m) =>
-				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:avg"),
+				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
 		);
-		expect(cpuAvg?.points[0]).toEqual([TEST_TIMESTAMP, 0.42]);
+		expect(cpuP50?.points[0]).toEqual([TEST_TIMESTAMP, 0.42]);
 
 		// Check CPU max
 		const cpuMax = metrics.find(

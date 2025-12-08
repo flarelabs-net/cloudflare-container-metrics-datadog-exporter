@@ -51,10 +51,6 @@ export const mockContainers: Container[] = [
  */
 export const mockMetricsGroups: MetricsGroup[] = [
 	{
-		avg: {
-			cpuLoad: 0.25,
-			memory: 268435456, // 256 MB
-		},
 		max: {
 			cpuLoad: 0.75,
 			memory: 402653184, // 384 MB
@@ -83,10 +79,6 @@ export const mockMetricsGroups: MetricsGroup[] = [
 		},
 	},
 	{
-		avg: {
-			cpuLoad: 0.15,
-			memory: 134217728, // 128 MB
-		},
 		max: {
 			cpuLoad: 0.45,
 			memory: 201326592, // 192 MB
@@ -149,11 +141,6 @@ export function createMockMetricsGroup(
 	overrides: Partial<MetricsGroup> = {},
 ): MetricsGroup {
 	return {
-		avg: {
-			cpuLoad: 0.25,
-			memory: 268435456,
-			...overrides.avg,
-		},
 		max: {
 			cpuLoad: 0.75,
 			memory: 402653184,

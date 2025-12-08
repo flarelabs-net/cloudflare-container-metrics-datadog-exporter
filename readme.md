@@ -84,7 +84,18 @@ Use `instances.total.max - instances.total.healthy` to calculate available capac
 
 **Tags:** `account_id`, `application_id`, `application_name`, `deployment_id`, `placement_id`, `stat`
 
-The `stat` tag indicates the aggregation: `avg`, `p90`, `p99`, `max` (bandwidth metrics don't have a stat tag).
+The `stat` tag indicates the aggregation: `p50`, `p90`, `p99`, `max` (bandwidth metrics don't have a stat tag).
+
+## Datadog Dashboard
+
+A pre-built dashboard is included in `datadog-dashboard.json`. To import it:
+
+1. In Datadog, go to **Dashboards** → **New Dashboard** → **New Dashboard**
+2. Click the cog icon (⚙️) in the top right
+3. Select **Import dashboard JSON**
+4. Paste the contents of `datadog-dashboard.json`
+
+See [Datadog's documentation](https://docs.datadoghq.com/dashboards/configure/#copy-import-or-export-dashboard-json) for more details.
 
 ## Workflow Behavior
 
@@ -95,3 +106,4 @@ The exporter runs as a Cloudflare Workflow triggered every minute via cron. Each
 - **Backoff**: Exponential (1s, 2s, 4s)
 
 Steps will automatically retry on transient failures (API errors, network issues).
+

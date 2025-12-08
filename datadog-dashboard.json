@@ -113,7 +113,7 @@
 					{
 						"id": 21,
 						"definition": {
-							"title": "CPU Load by Application (Avg)",
+							"title": "CPU Load by Application (P50)",
 							"title_size": "16",
 							"title_align": "left",
 							"show_legend": true,
@@ -127,7 +127,7 @@
 										{
 											"name": "query1",
 											"data_source": "metrics",
-											"query": "avg:cloudflare.containers.cpu{stat:avg,$application_name} by {application_name}"
+											"query": "avg:cloudflare.containers.cpu{stat:p50,$application_name} by {application_name}"
 										}
 									],
 									"response_format": "timeseries",
@@ -193,7 +193,7 @@
 										{
 											"name": "query1",
 											"data_source": "metrics",
-											"query": "avg:cloudflare.containers.cpu{stat:avg,$application_name} by {application_name}",
+											"query": "avg:cloudflare.containers.cpu{stat:p50,$application_name} by {application_name}",
 											"aggregator": "avg"
 										}
 									],
@@ -217,7 +217,7 @@
 										{
 											"name": "query1",
 											"data_source": "metrics",
-											"query": "avg:cloudflare.containers.cpu{stat:avg,$application_name} by {placement_id}"
+											"query": "avg:cloudflare.containers.cpu{stat:p50,$application_name} by {placement_id}"
 										}
 									],
 									"response_format": "timeseries",
@@ -241,7 +241,7 @@
 					{
 						"id": 31,
 						"definition": {
-							"title": "Memory Usage by Application (Avg)",
+							"title": "Memory Usage by Application (P50)",
 							"title_size": "16",
 							"title_align": "left",
 							"show_legend": true,
@@ -255,7 +255,7 @@
 										{
 											"name": "query1",
 											"data_source": "metrics",
-											"query": "avg:cloudflare.containers.memory{stat:avg,$application_name} by {application_name}"
+											"query": "avg:cloudflare.containers.memory{stat:p50,$application_name} by {application_name}"
 										}
 									],
 									"response_format": "timeseries",
@@ -321,7 +321,7 @@
 										{
 											"name": "query1",
 											"data_source": "metrics",
-											"query": "avg:cloudflare.containers.memory{stat:avg,$application_name} by {application_name}",
+											"query": "avg:cloudflare.containers.memory{stat:p50,$application_name} by {application_name}",
 											"aggregator": "avg"
 										}
 									],
@@ -345,7 +345,7 @@
 										{
 											"name": "query1",
 											"data_source": "metrics",
-											"query": "avg:cloudflare.containers.memory{stat:avg,$application_name} by {placement_id}"
+											"query": "avg:cloudflare.containers.memory{stat:p50,$application_name} by {placement_id}"
 										}
 									],
 									"response_format": "timeseries",
@@ -557,12 +557,12 @@
 					{
 						"formulas": [
 							{
-								"alias": "CPU Avg",
+								"alias": "CPU P50",
 								"formula": "query1",
 								"limit": { "count": 50, "order": "desc" }
 							},
 							{ "alias": "CPU P90", "formula": "query2" },
-							{ "alias": "Memory Avg (GB)", "formula": "query3 / 1000000000" },
+							{ "alias": "Memory P50 (GB)", "formula": "query3 / 1000000000" },
 							{ "alias": "Memory P90 (GB)", "formula": "query4 / 1000000000" },
 							{ "alias": "Disk P90 (GB)", "formula": "query5 / 1000000000" }
 						],
@@ -570,7 +570,7 @@
 							{
 								"name": "query1",
 								"data_source": "metrics",
-								"query": "avg:cloudflare.containers.cpu{stat:avg,$application_name} by {application_name}",
+								"query": "avg:cloudflare.containers.cpu{stat:p50,$application_name} by {application_name}",
 								"aggregator": "avg"
 							},
 							{
@@ -582,7 +582,7 @@
 							{
 								"name": "query3",
 								"data_source": "metrics",
-								"query": "avg:cloudflare.containers.memory{stat:avg,$application_name} by {application_name}",
+								"query": "avg:cloudflare.containers.memory{stat:p50,$application_name} by {application_name}",
 								"aggregator": "avg"
 							},
 							{

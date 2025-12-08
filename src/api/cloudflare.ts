@@ -27,10 +27,6 @@ query GetCloudchamberMetrics($accountTag: string!, $datetimeStart: Time, $dateti
   viewer {
     accounts(filter: {accountTag: $accountTag}) {
       cloudchamberMetricsAdaptiveGroups(limit: 10000, filter: {applicationId_in: $applicationIds, datetimeMinute_geq: $datetimeStart, datetimeMinute_leq: $datetimeEnd}) {
-        avg {
-          memory
-          cpuLoad
-        }
         max {
           memory
           cpuLoad

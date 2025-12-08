@@ -28,11 +28,6 @@ export const Container = z.looseObject({
 
 // GraphQL Metrics Response Schemas
 
-const MetricsAvgSchema = z.object({
-	cpuLoad: z.number(),
-	memory: z.number(),
-});
-
 const MetricsMaxSchema = z.object({
 	cpuLoad: z.number(),
 	memory: z.number(),
@@ -66,7 +61,6 @@ const MetricsSumSchema = z.object({
 /** Metrics group from GraphQL API */
 export type MetricsGroup = z.infer<typeof MetricsGroup>;
 export const MetricsGroup = z.object({
-	avg: MetricsAvgSchema,
 	max: MetricsMaxSchema,
 	dimensions: MetricsDimensionsSchema,
 	quantiles: MetricsQuantilesSchema,

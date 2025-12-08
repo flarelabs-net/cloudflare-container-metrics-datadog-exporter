@@ -37,8 +37,8 @@ export function formatMetricsForContainer(
 			{
 				metric: "cloudflare.containers.cpu",
 				type: "gauge",
-				points: [[ts, group.avg.cpuLoad]],
-				tags: [...baseTags, "stat:avg"],
+				points: [[ts, group.quantiles.cpuLoadP50]],
+				tags: [...baseTags, "stat:p50"],
 			},
 			{
 				metric: "cloudflare.containers.cpu",
@@ -65,8 +65,8 @@ export function formatMetricsForContainer(
 			{
 				metric: "cloudflare.containers.memory",
 				type: "gauge",
-				points: [[ts, group.avg.memory]],
-				tags: [...baseTags, "stat:avg"],
+				points: [[ts, group.quantiles.memoryP50]],
+				tags: [...baseTags, "stat:p50"],
 			},
 			{
 				metric: "cloudflare.containers.memory",
@@ -90,6 +90,12 @@ export function formatMetricsForContainer(
 
 		// Disk metrics
 		metrics.push(
+			{
+				metric: "cloudflare.containers.disk",
+				type: "gauge",
+				points: [[ts, group.quantiles.diskUsageP50]],
+				tags: [...baseTags, "stat:p50"],
+			},
 			{
 				metric: "cloudflare.containers.disk",
 				type: "gauge",
