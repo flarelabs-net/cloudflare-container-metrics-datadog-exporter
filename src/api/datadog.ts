@@ -54,9 +54,39 @@ export class DatadogApi {
 			body: JSON.stringify({ series: metrics }),
 		});
 
+		const errorMessage = await this.parseErrorResponse(response);
+
 		if (!response.ok) {
+			const status = response.status;
+
+			// Non-retryable errors: log and return without throwing
+			if (status === 400 || status === 401 || status === 403) {
+				console.error("Datadog API error (non-retryable)", {
+					status,
+					error: errorMessage,
+				});
+				return;
+			}
+
+			// Retryable errors (429, 5xx): log and throw to trigger workflow retry
+			console.error("Datadog API error (retryable)", {
+				status,
+				error: errorMessage,
+			});
+			throw new Error(`Datadog API error (${status}): ${errorMessage}`);
+		}
+	}
+
+	private async parseErrorResponse(response: Response): Promise<string> {
+		try {
 			const text = await response.text();
-			throw new Error(`Datadog API error (${response.status}): ${text}`);
+			const json = JSON.parse(text);
+			if (json.errors && typeof json.errors === "string") {
+				return json.errors;
+			}
+			return text;
+		} catch {
+			return "Unknown error";
 		}
 	}
 }

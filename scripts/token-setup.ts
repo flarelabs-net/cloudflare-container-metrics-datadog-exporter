@@ -32,7 +32,25 @@ if (!cfToken || typeof cfToken !== "string") {
 	process.exit(1);
 }
 
-const ddApiKey = await consola.prompt("Enter your Datadog API Key:", {
+const ddSite = await consola.prompt("Select your Datadog Site:", {
+	type: "select",
+	options: [
+		{ label: "US1 (datadoghq.com)", value: "datadoghq.com" },
+		{ label: "US3 (us3.datadoghq.com)", value: "us3.datadoghq.com" },
+		{ label: "US5 (us5.datadoghq.com)", value: "us5.datadoghq.com" },
+		{ label: "EU1 (datadoghq.eu)", value: "datadoghq.eu" },
+		{ label: "US1-FED (ddog-gov.com)", value: "ddog-gov.com" },
+		{ label: "AP1 - Japan (ap1.datadoghq.com)", value: "ap1.datadoghq.com" },
+		{ label: "AP2 - Australia (ap2.datadoghq.com)", value: "ap2.datadoghq.com" },
+	],
+});
+
+const ddApiKeysUrl = `https://${ddSite}/organization-settings/api-keys`;
+consola.start("Opening browser to Datadog API keys page...");
+await setTimeout(1000);
+await open(ddApiKeysUrl);
+
+const ddApiKey = await consola.prompt("Paste your Datadog API Key:", {
 	type: "text",
 });
 
@@ -41,21 +59,10 @@ if (!ddApiKey || typeof ddApiKey !== "string") {
 	process.exit(1);
 }
 
-const ddSite = await consola.prompt(
-	"Enter your Datadog Site (optional, e.g. datadoghq.eu):",
-	{
-		type: "text",
-		default: "",
-	},
-);
-
-let envContent = `CLOUDFLARE_ACCOUNT_ID=${accountId}
+const envContent = `CLOUDFLARE_ACCOUNT_ID=${accountId}
 CLOUDFLARE_API_TOKEN=${cfToken}
-DATADOG_API_KEY=${ddApiKey}`;
-
-if (ddSite && typeof ddSite === "string" && ddSite.trim()) {
-	envContent += `\nDATADOG_SITE=${ddSite.trim()}`;
-}
+DATADOG_API_KEY=${ddApiKey}
+DATADOG_SITE=${ddSite}`;
 
 await writeFile(".dev.vars", envContent);
 consola.success("Created .dev.vars file:");
