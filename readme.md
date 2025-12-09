@@ -1,6 +1,6 @@
 # Container Metrics Exporter
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/flarelabs-net/cloudflare-container-metrics-datadog-exporter)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/flarelabs-net/cloudflare-container-metrics-datadog-exporter.git)
 
 Exports Cloudflare Containers metrics to Datadog using the [Cloudflare GraphQL Analytics API](https://developers.cloudflare.com/analytics/graphql-api/). Runs as a [Cloudflare Workflow](https://developers.cloudflare.com/workflows/) triggered every minute to scrape metrics for all containers in an account.
 

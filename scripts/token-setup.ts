@@ -41,7 +41,10 @@ const ddSite = await consola.prompt("Select your Datadog Site:", {
 		{ label: "EU1 (datadoghq.eu)", value: "datadoghq.eu" },
 		{ label: "US1-FED (ddog-gov.com)", value: "ddog-gov.com" },
 		{ label: "AP1 - Japan (ap1.datadoghq.com)", value: "ap1.datadoghq.com" },
-		{ label: "AP2 - Australia (ap2.datadoghq.com)", value: "ap2.datadoghq.com" },
+		{
+			label: "AP2 - Australia (ap2.datadoghq.com)",
+			value: "ap2.datadoghq.com",
+		},
 	],
 });
 
