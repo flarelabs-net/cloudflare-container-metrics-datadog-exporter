@@ -630,6 +630,12 @@
 			"prefix": "placement_id",
 			"available_values": [],
 			"default": "*"
+		},
+		{
+			"name": "account_id",
+			"prefix": "account_id",
+			"available_values": [],
+			"default": "*"
 		}
 	],
 	"layout_type": "ordered",
