@@ -25,14 +25,19 @@ npm install
 npm run token-setup
 ```
 
-This will prompt for your Cloudflare Account ID, open the browser to create an API token with the required permissions, and collect your Datadog credentials. It automatically creates a `.dev.vars` file.
+This will prompt for your Cloudflare Account ID, open the browser to create an API token with the required permissions, and collect your Datadog API Key. It automatically creates a `.dev.vars` file.
 
 ### Verify
 
 ```bash
 npx wrangler dev
+```
+In another terminal run:
+
+```
 curl "http://localhost:8787/cdn-cgi/handler/scheduled"
 ```
+You should see an "Ok" response from the curl and logs from the exporter.
 
 ### Deploy
 
