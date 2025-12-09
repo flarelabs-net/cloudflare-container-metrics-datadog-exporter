@@ -620,8 +620,8 @@
 			"default": "*"
 		},
 		{
-			"name": "deployment_id",
-			"prefix": "deployment_id",
+			"name": "instance_id",
+			"prefix": "instance_id",
 			"available_values": [],
 			"default": "*"
 		},

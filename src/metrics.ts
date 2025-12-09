@@ -9,6 +9,7 @@ export interface ContainerWithMetrics {
 export interface ContainerInfo {
 	id: string;
 	name: string;
+	version: number;
 }
 
 /**
@@ -28,7 +29,8 @@ export function formatMetricsForContainer(
 			`account_id:${accountId}`,
 			`application_id:${group.dimensions.applicationId}`,
 			`application_name:${container.name}`,
-			`deployment_id:${group.dimensions.deploymentId}`,
+			`version:${container.version}`,
+			`instance_id:${group.dimensions.deploymentId}`,
 			`placement_id:${group.dimensions.placementId}`,
 		];
 

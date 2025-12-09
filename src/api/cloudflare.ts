@@ -23,10 +23,10 @@ export interface GraphQLResponse<T> {
 }
 
 const CONTAINERS_METRICS_QUERY = `
-query GetCloudchamberMetrics($accountTag: string!, $datetimeStart: Time, $datetimeEnd: Time, $applicationIds: [string!]) {
+query GetCloudchamberMetrics($accountTag: string!, $datetimeStart: Time, $datetimeEnd: Time, $applicationId: string!) {
   viewer {
     accounts(filter: {accountTag: $accountTag}) {
-      cloudchamberMetricsAdaptiveGroups(limit: 10000, filter: {applicationId_in: $applicationIds, datetimeMinute_geq: $datetimeStart, datetimeMinute_leq: $datetimeEnd}) {
+      cloudchamberMetricsAdaptiveGroups(limit: 10000, filter: {applicationId: $applicationId, datetimeMinute_geq: $datetimeStart, datetimeMinute_leq: $datetimeEnd}) {
         max {
           memory
           cpuLoad
@@ -50,8 +50,8 @@ query GetCloudchamberMetrics($accountTag: string!, $datetimeStart: Time, $dateti
         dimensions {
           datetimeMinute
           applicationId
-          placementId
           deploymentId
+          placementId
         }
       }
     }
@@ -98,13 +98,13 @@ export class CloudflareApi {
 	}
 
 	/**
-	 * Get metrics for multiple container applications
-	 * @param applicationIds - Array of container application IDs
+	 * Get metrics for a container application
+	 * @param applicationId - Container application ID
 	 * @param startTime - Start of the time range (defaults to 5 minutes ago)
 	 * @param endTime - End of the time range (defaults to now)
 	 */
 	async getContainerMetrics(
-		applicationIds: string[],
+		applicationId: string,
 		startTime?: Date,
 		endTime?: Date,
 	): Promise<MetricsGroup[]> {
@@ -115,7 +115,7 @@ export class CloudflareApi {
 			accountTag: this.config.accountId,
 			datetimeStart: start.toISOString(),
 			datetimeEnd: now.toISOString(),
-			applicationIds,
+			applicationId,
 		};
 
 		const response = await fetch(this.graphqlUrl, {
@@ -143,7 +143,7 @@ export class CloudflareApi {
 			data.data?.viewer?.accounts?.[0]?.cloudchamberMetricsAdaptiveGroups ?? [];
 
 		console.log("Fetched container metrics", {
-			applicationCount: applicationIds.length,
+			applicationId,
 			groupCount: groups.length,
 		});
 

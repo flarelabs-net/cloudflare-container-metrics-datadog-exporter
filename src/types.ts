@@ -21,6 +21,7 @@ export type Container = z.infer<typeof Container>;
 export const Container = z.looseObject({
 	id: z.string(),
 	name: z.string(),
+	version: z.number(),
 	instances: z.number().optional(),
 	max_instances: z.number().optional(),
 	health: HealthSchema.optional(),

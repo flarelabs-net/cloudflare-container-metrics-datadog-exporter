@@ -66,7 +66,11 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 				);
 				await datadog.sendMetrics(healthMetrics);
 
-				return result.map((c) => ({ id: c.id, name: c.name }));
+				return result.map((c) => ({
+					id: c.id,
+					name: c.name,
+					version: c.version,
+				}));
 			},
 		);
 
@@ -74,11 +78,11 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 
 		for (const container of containers) {
 			const count = await step.do(
-				`export metrics: ${container.name}`,
+				`Download Metrics: ${container.name}`,
 				STEP_CONFIG,
 				async () => {
 					const metricsGroups = await cloudflare.getContainerMetrics(
-						[container.id],
+						container.id,
 						start,
 						end,
 					);
@@ -95,7 +99,7 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 						batches.map(
 							(batch, i) => () =>
 								step.do(
-									`send batch ${i + 1}/${batches.length} (${batch.length} metrics)`,
+									`Export Metrics: ${container.name} batch ${i + 1}/${batches.length}`,
 									STEP_CONFIG,
 									async () => {
 										await datadog.sendMetrics(batch);

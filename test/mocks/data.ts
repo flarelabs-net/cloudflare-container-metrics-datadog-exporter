@@ -11,6 +11,7 @@ export const mockContainers: Container[] = [
 	{
 		id: "app-123-abc",
 		name: "my-web-app",
+		version: 3,
 		instances: 5,
 		max_instances: 10,
 		health: {
@@ -29,6 +30,7 @@ export const mockContainers: Container[] = [
 	{
 		id: "app-456-def",
 		name: "api-service",
+		version: 1,
 		instances: 3,
 		max_instances: 5,
 		health: {
@@ -74,8 +76,8 @@ export const mockMetricsGroups: MetricsGroup[] = [
 		dimensions: {
 			applicationId: "app-123-abc",
 			datetimeMinute: "2025-12-05T16:00:00Z",
-			deploymentId: "deploy-001",
-			placementId: "place-us-east-1",
+			deploymentId: "instance-001",
+			placementId: "placement-us-east-1",
 		},
 	},
 	{
@@ -102,8 +104,8 @@ export const mockMetricsGroups: MetricsGroup[] = [
 		dimensions: {
 			applicationId: "app-123-abc",
 			datetimeMinute: "2025-12-05T16:00:00Z",
-			deploymentId: "deploy-002",
-			placementId: "place-us-east-2",
+			deploymentId: "instance-002",
+			placementId: "placement-us-east-2",
 		},
 	},
 ];
@@ -167,8 +169,8 @@ export function createMockMetricsGroup(
 		dimensions: {
 			applicationId: "app-123-abc",
 			datetimeMinute: new Date().toISOString(),
-			deploymentId: "deploy-001",
-			placementId: "place-us-east-1",
+			deploymentId: "instance-001",
+			placementId: "placement-us-east-1",
 			...overrides.dimensions,
 		},
 	};

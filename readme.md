@@ -90,9 +90,12 @@ Use `instances.total.max - instances.total.healthy` to calculate available capac
 | `bandwidth.rx` | count | bytes | Bytes received |
 | `bandwidth.tx` | count | bytes | Bytes transmitted |
 
-**Tags:** `account_id`, `application_id`, `application_name`, `deployment_id`, `placement_id`, `stat`
+**Tags:** `account_id`, `application_id`, `application_name`, `version`, `instance_id`, `placement_id`, `stat`
 
-The `stat` tag indicates the aggregation: `p50`, `p90`, `p99`, `max` (bandwidth metrics don't have a stat tag).
+- `version` - The container application version number
+- `instance_id` - The instance identifier (maps to Cloudflare's deploymentId)
+- `placement_id` - The placement identifier (specific realization of an instance, useful for tracking restarts/churn)
+- `stat` - The aggregation type: `p50`, `p90`, `p99`, `max` (bandwidth metrics don't have a stat tag)
 
 ## Datadog Dashboard
 

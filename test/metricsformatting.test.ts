@@ -16,7 +16,7 @@ const TEST_TIMESTAMP = 1733414400; // 2024-12-05T16:00:00Z
 
 describe("formatMetricsForContainer", () => {
 	it("formats metrics for a single container", () => {
-		const container = { id: "app-123", name: "my-app" };
+		const container = { id: "app-123", name: "my-app", version: 1 };
 		const metrics = formatMetricsForContainer(
 			TEST_ACCOUNT_ID,
 			container,
@@ -29,7 +29,7 @@ describe("formatMetricsForContainer", () => {
 	});
 
 	it("formats multiple metrics groups", () => {
-		const container = { id: "app-123", name: "my-app" };
+		const container = { id: "app-123", name: "my-app", version: 1 };
 		const metrics = formatMetricsForContainer(
 			TEST_ACCOUNT_ID,
 			container,
@@ -42,13 +42,13 @@ describe("formatMetricsForContainer", () => {
 	});
 
 	it("includes correct tags", () => {
-		const container = { id: "app-123", name: "my-app" };
+		const container = { id: "app-123", name: "my-app", version: 1 };
 		const group = createMockMetricsGroup({
 			dimensions: {
 				applicationId: "app-test",
 				datetimeMinute: "2025-12-05T16:00:00Z",
-				deploymentId: "deploy-test",
-				placementId: "place-test",
+				deploymentId: "instance-test",
+				placementId: "placement-test",
 			},
 		});
 
@@ -68,12 +68,13 @@ describe("formatMetricsForContainer", () => {
 		expect(cpuMetric?.tags).toContain(`account_id:${TEST_ACCOUNT_ID}`);
 		expect(cpuMetric?.tags).toContain("application_id:app-test");
 		expect(cpuMetric?.tags).toContain("application_name:my-app");
-		expect(cpuMetric?.tags).toContain("deployment_id:deploy-test");
-		expect(cpuMetric?.tags).toContain("placement_id:place-test");
+		expect(cpuMetric?.tags).toContain("version:1");
+		expect(cpuMetric?.tags).toContain("instance_id:instance-test");
+		expect(cpuMetric?.tags).toContain("placement_id:placement-test");
 	});
 
 	it("returns empty array for no metrics groups", () => {
-		const container = { id: "app-123", name: "my-app" };
+		const container = { id: "app-123", name: "my-app", version: 1 };
 		const metrics = formatMetricsForContainer(
 			TEST_ACCOUNT_ID,
 			container,
@@ -130,8 +131,8 @@ describe("formatContainerMetrics", () => {
 			dimensions: {
 				applicationId: "app-test",
 				datetimeMinute: "2025-12-05T16:00:00Z",
-				deploymentId: "deploy-test",
-				placementId: "place-test",
+				deploymentId: "instance-test",
+				placementId: "placement-test",
 			},
 		});
 
@@ -159,8 +160,8 @@ describe("formatContainerMetrics", () => {
 		expect(cpuMetric?.tags).toContain(
 			`application_name:${mockContainers[0].name}`,
 		);
-		expect(cpuMetric?.tags).toContain("deployment_id:deploy-test");
-		expect(cpuMetric?.tags).toContain("placement_id:place-test");
+		expect(cpuMetric?.tags).toContain("instance_id:instance-test");
+		expect(cpuMetric?.tags).toContain("placement_id:placement-test");
 		expect(cpuMetric?.tags).toContain("stat:p50");
 	});
 
