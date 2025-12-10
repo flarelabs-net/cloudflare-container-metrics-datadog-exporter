@@ -59,21 +59,34 @@ export class DatadogApi {
 		if (!response.ok) {
 			const status = response.status;
 
-			// Non-retryable errors: log and return without throwing
-			if (status === 400 || status === 401 || status === 403) {
-				console.error("Datadog API error (non-retryable)", {
+			// Handle 413 Payload Too Large specifically
+			if (status === 413) {
+				console.error("Datadog API error: Payload too large", {
 					status,
 					error: errorMessage,
+					hint: "Reduce the BATCH_SIZE in your workflow configuration to send fewer metrics per request",
 				});
 				return;
 			}
 
-			// Retryable errors (429, 5xx): log and throw to trigger workflow retry
-			console.error("Datadog API error (retryable)", {
+			// Only retry 429 (rate limit) and 5xx (server errors)
+			const isRetryable = status === 429 || (status >= 500 && status < 600);
+
+			if (isRetryable) {
+				// Retryable errors: log and throw to trigger workflow retry
+				console.error("Datadog API error (retryable)", {
+					status,
+					error: errorMessage,
+				});
+				throw new Error(`Datadog API error (${status}): ${errorMessage}`);
+			}
+
+			// All other errors are non-retryable: log and return without throwing
+			console.error("Datadog API error (non-retryable)", {
 				status,
 				error: errorMessage,
 			});
-			throw new Error(`Datadog API error (${status}): ${errorMessage}`);
+			return;
 		}
 	}
 

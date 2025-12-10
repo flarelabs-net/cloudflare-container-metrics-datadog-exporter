@@ -77,10 +77,12 @@ export type CloudchamberMetricsResponse = z.infer<
 	typeof CloudchamberMetricsResponse
 >;
 export const CloudchamberMetricsResponse = z.object({
-	data: z.object({
-		viewer: z.object({
-			accounts: z.array(MetricsAccountSchema),
-		}),
-	}),
+	data: z
+		.object({
+			viewer: z.object({
+				accounts: z.array(MetricsAccountSchema),
+			}),
+		})
+		.nullable(),
 	errors: z.array(z.unknown()).nullable(),
 });

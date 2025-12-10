@@ -37,6 +37,7 @@ const STEP_CONFIG = {
 
 export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 	async run(_event: WorkflowEvent<unknown>, step: WorkflowStep) {
+		const batchSize = Number.parseInt(this.env.BATCH_SIZE || "5000", 10);
 		const cloudflare = createCloudflareApi(
 			this.env.CLOUDFLARE_ACCOUNT_ID,
 			this.env.CLOUDFLARE_API_TOKEN,
@@ -93,7 +94,7 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 						metricsGroups,
 					);
 
-					const batches = chunk(metrics, 25000);
+					const batches = chunk(metrics, batchSize);
 
 					await pAll(
 						batches.map(

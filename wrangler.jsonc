@@ -15,5 +15,8 @@
 			"class_name": "MetricsExporterWorkflow",
 			"name": "metrics-exporter-workflow"
 		}
-	]
+	],
+	"vars": {
+		"BATCH_SIZE": "5000"
+	}
 }

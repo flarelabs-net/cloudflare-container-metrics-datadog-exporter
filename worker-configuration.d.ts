@@ -10,6 +10,7 @@ declare namespace Cloudflare {
 		CLOUDFLARE_API_TOKEN: string;
 		DATADOG_API_KEY: string;
 		DATADOG_SITE: string;
+		BATCH_SIZE: string;
 		METRICS_WORKFLOW: Workflow<Parameters<import("./src/index").MetricsExporterWorkflow['run']>[0]['payload']>;
 	}
 }

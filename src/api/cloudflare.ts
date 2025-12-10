@@ -136,11 +136,25 @@ export class CloudflareApi {
 		const data = CloudchamberMetricsResponse.parse(await response.json());
 
 		if (data.errors && data.errors.length > 0) {
+			console.error("GraphQL errors", {
+				applicationId,
+				errors: data.errors,
+			});
 			throw new Error(`GraphQL errors: ${JSON.stringify(data.errors)}`);
 		}
 
+		if (!data.data) {
+			console.error("GraphQL returned null data", {
+				applicationId,
+				errors: data.errors,
+			});
+			throw new Error(
+				"GraphQL returned null data. This may indicate an authentication or permission issue.",
+			);
+		}
+
 		const groups =
-			data.data?.viewer?.accounts?.[0]?.cloudchamberMetricsAdaptiveGroups ?? [];
+			data.data.viewer?.accounts?.[0]?.cloudchamberMetricsAdaptiveGroups ?? [];
 
 		console.log("Fetched container metrics", {
 			applicationId,
