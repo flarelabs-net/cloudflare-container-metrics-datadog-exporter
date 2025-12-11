@@ -66,7 +66,8 @@ export class CloudflareApi {
 	private readonly fetcher: typeof fetch;
 
 	constructor(private readonly config: CloudflareApiConfig) {
-		this.fetcher = config.fetcher ?? fetch;
+		// Wrap fetch in arrow function to avoid "Illegal invocation" binding errors in Workers runtime
+		this.fetcher = config.fetcher ?? ((...args) => fetch(...args));
 	}
 
 	private get headers(): HeadersInit {

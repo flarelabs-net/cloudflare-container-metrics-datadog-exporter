@@ -48,7 +48,7 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 			);
 			const id = jurisdiction.idFromName("metrics-proxy");
 			const stub = jurisdiction.get(id);
-			fetcher = stub.fetch.bind(stub);
+			fetcher = (input, init) => stub.fetch(new Request(input, init));
 		}
 
 		const cloudflare = createCloudflareApi(
