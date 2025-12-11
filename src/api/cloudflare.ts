@@ -8,6 +8,7 @@ import {
 export interface CloudflareApiConfig {
 	accountId: string;
 	apiToken: string;
+	fetcher?: typeof fetch;
 }
 
 const ContainersListResponseSchema = z.object({
@@ -62,8 +63,11 @@ query GetCloudchamberMetrics($accountTag: string!, $datetimeStart: Time, $dateti
 export class CloudflareApi {
 	private readonly baseUrl = "https://api.cloudflare.com/client/v4";
 	private readonly graphqlUrl = "https://api.cloudflare.com/client/v4/graphql";
+	private readonly fetcher: typeof fetch;
 
-	constructor(private readonly config: CloudflareApiConfig) {}
+	constructor(private readonly config: CloudflareApiConfig) {
+		this.fetcher = config.fetcher ?? fetch;
+	}
 
 	private get headers(): HeadersInit {
 		return {
@@ -78,7 +82,7 @@ export class CloudflareApi {
 	async listContainers(): Promise<Container[]> {
 		const url = `${this.baseUrl}/accounts/${this.config.accountId}/containers/applications`;
 
-		const response = await fetch(url, {
+		const response = await this.fetcher(url, {
 			headers: this.headers,
 		});
 
@@ -118,7 +122,7 @@ export class CloudflareApi {
 			applicationId,
 		};
 
-		const response = await fetch(this.graphqlUrl, {
+		const response = await this.fetcher(this.graphqlUrl, {
 			method: "POST",
 			headers: this.headers,
 			body: JSON.stringify({
@@ -171,6 +175,7 @@ export class CloudflareApi {
 export function createCloudflareApi(
 	accountId: string,
 	apiToken: string,
+	fetcher?: typeof fetch,
 ): CloudflareApi {
-	return new CloudflareApi({ accountId, apiToken });
+	return new CloudflareApi({ accountId, apiToken, fetcher });
 }

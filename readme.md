@@ -27,6 +27,19 @@ npm run token-setup
 
 This will prompt for your Cloudflare Account ID, open the browser to create an API token with the required permissions, and collect your Datadog API Key. It automatically creates a `.dev.vars` file.
 
+#### Optional: Jurisdiction
+
+To run GraphQL queries from a specific jurisdiction (closer to the data source), set the `JURISDICTION` variable in `wrangler.jsonc`:
+
+```jsonc
+"vars": {
+  "BATCH_SIZE": "5000",
+  "JURISDICTION": "eu" // e.g., "eu", "fedramp"
+}
+```
+
+This uses a Durable Object to proxy requests from the specified jurisdiction.
+
 ### Verify
 
 ```bash

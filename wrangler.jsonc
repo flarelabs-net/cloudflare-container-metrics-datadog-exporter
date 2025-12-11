@@ -18,7 +18,22 @@
 			"name": "metrics-exporter-workflow"
 		}
 	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "REQUEST_PROXY",
+				"class_name": "RequestProxy"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": ["RequestProxy"]
+		}
+	],
 	"vars": {
-		"BATCH_SIZE": "5000"
+		"BATCH_SIZE": "5000",
+		"JURISDICTION": ""
 	}
 }

@@ -38,9 +38,23 @@ const STEP_CONFIG = {
 export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 	async run(_event: WorkflowEvent<unknown>, step: WorkflowStep) {
 		const batchSize = Number.parseInt(this.env.BATCH_SIZE || "5000", 10);
+
+		// Create a fetcher that proxies requests through a Durable Object in a specific jurisdiction
+		// This ensures GraphQL queries run close to the data source
+		let fetcher: typeof fetch | undefined;
+		if (this.env.JURISDICTION) {
+			const jurisdiction = this.env.REQUEST_PROXY.jurisdiction(
+				this.env.JURISDICTION as DurableObjectJurisdiction,
+			);
+			const id = jurisdiction.idFromName("metrics-proxy");
+			const stub = jurisdiction.get(id);
+			fetcher = stub.fetch.bind(stub);
+		}
+
 		const cloudflare = createCloudflareApi(
 			this.env.CLOUDFLARE_ACCOUNT_ID,
 			this.env.CLOUDFLARE_API_TOKEN,
+			fetcher,
 		);
 
 		const datadog = createDatadogApi(

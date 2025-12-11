@@ -1,4 +1,5 @@
 export { MetricsExporterWorkflow } from "./workflow";
+export { RequestProxy } from "./request-proxy";
 
 const REQUIRED_ENV_VARS = [
 	"CLOUDFLARE_API_TOKEN",
