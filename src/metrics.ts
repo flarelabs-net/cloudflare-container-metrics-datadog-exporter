@@ -153,7 +153,6 @@ export function formatMetricsForContainer(
 	return metrics;
 }
 
-
 /**
  * Format container health data into Datadog metrics
  */

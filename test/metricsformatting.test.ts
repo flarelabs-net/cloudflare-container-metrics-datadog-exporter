@@ -1,8 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-	formatHealthMetrics,
-	formatMetricsForContainer,
-} from "../src/metrics";
+import { formatHealthMetrics, formatMetricsForContainer } from "../src/metrics";
 import {
 	createMockMetricsGroup,
 	mockContainers,
