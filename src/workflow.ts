@@ -36,7 +36,7 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 		const stepConfig = {
 			retries: {
 				limit: retryLimit,
-				delay: `${retryDelaySeconds} second` as const,
+				delay: `${retryDelaySeconds} seconds` as const,
 				backoff: "exponential" as const,
 			},
 		};
