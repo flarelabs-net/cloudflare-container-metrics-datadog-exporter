@@ -1,7 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
-	type ContainerWithMetrics,
-	formatContainerMetrics,
 	formatHealthMetrics,
 	formatMetricsForContainer,
 } from "../src/metrics";
@@ -73,80 +71,15 @@ describe("formatMetricsForContainer", () => {
 		expect(cpuMetric?.tags).toContain("placement_id:placement-test");
 	});
 
-	it("returns empty array for no metrics groups", () => {
+	it("includes custom tags when provided", () => {
 		const container = { id: "app-123", name: "my-app", version: 1 };
+		const datadogTags = { env: "production", team: "platform" };
 		const metrics = formatMetricsForContainer(
 			TEST_ACCOUNT_ID,
 			container,
-			[],
+			[mockMetricsGroups[0]],
 			TEST_TIMESTAMP,
-		);
-		expect(metrics).toHaveLength(0);
-	});
-});
-
-describe("formatContainerMetrics", () => {
-	it("formats metrics for a single container with one metrics group", () => {
-		const containersWithMetrics: ContainerWithMetrics[] = [
-			{
-				container: mockContainers[0],
-				metrics: [mockMetricsGroups[0]],
-			},
-		];
-
-		const metrics = formatContainerMetrics(
-			TEST_ACCOUNT_ID,
-			containersWithMetrics,
-			TEST_TIMESTAMP,
-		);
-
-		// 4 CPU + 4 Memory + 4 Disk + 2 Bandwidth = 14 metrics per group
-		expect(metrics).toHaveLength(14);
-	});
-
-	it("formats metrics for multiple containers with multiple groups", () => {
-		const containersWithMetrics: ContainerWithMetrics[] = [
-			{
-				container: mockContainers[0],
-				metrics: mockMetricsGroups, // 2 groups
-			},
-			{
-				container: mockContainers[1],
-				metrics: [mockMetricsGroups[0]], // 1 group
-			},
-		];
-
-		const metrics = formatContainerMetrics(
-			TEST_ACCOUNT_ID,
-			containersWithMetrics,
-			TEST_TIMESTAMP,
-		);
-
-		// 3 groups * 14 metrics = 42 metrics
-		expect(metrics).toHaveLength(42);
-	});
-
-	it("includes correct tags for each metric", () => {
-		const group = createMockMetricsGroup({
-			dimensions: {
-				applicationId: "app-test",
-				datetimeMinute: "2025-12-05T16:00:00Z",
-				deploymentId: "instance-test",
-				placementId: "placement-test",
-			},
-		});
-
-		const containersWithMetrics: ContainerWithMetrics[] = [
-			{
-				container: mockContainers[0],
-				metrics: [group],
-			},
-		];
-
-		const metrics = formatContainerMetrics(
-			TEST_ACCOUNT_ID,
-			containersWithMetrics,
-			TEST_TIMESTAMP,
+			datadogTags,
 		);
 
 		const cpuMetric = metrics.find(
@@ -155,132 +88,88 @@ describe("formatContainerMetrics", () => {
 		);
 
 		expect(cpuMetric).toBeDefined();
-		expect(cpuMetric?.tags).toContain(`account_id:${TEST_ACCOUNT_ID}`);
-		expect(cpuMetric?.tags).toContain("application_id:app-test");
-		expect(cpuMetric?.tags).toContain(
-			`application_name:${mockContainers[0].name}`,
-		);
-		expect(cpuMetric?.tags).toContain("instance_id:instance-test");
-		expect(cpuMetric?.tags).toContain("placement_id:placement-test");
-		expect(cpuMetric?.tags).toContain("stat:p50");
+		expect(cpuMetric?.tags).toContain("env:production");
+		expect(cpuMetric?.tags).toContain("team:platform");
 	});
 
-	it("uses correct metric values from the group", () => {
-		const group = createMockMetricsGroup({
-			max: { cpuLoad: 0.99, memory: 999999999, diskUsage: 5000000000 },
-			quantiles: {
-				cpuLoadP50: 0.42,
-				cpuLoadP90: 0.8,
-				cpuLoadP99: 0.95,
-				memoryP50: 100000000,
-				memoryP90: 200000000,
-				memoryP99: 300000000,
-				diskUsageP50: 1000000000,
-				diskUsageP90: 2000000000,
-				diskUsageP99: 4000000000,
-			},
-			sum: { rxBytes: 1000000, txBytes: 500000 },
-		});
+	it("handles invalid datadogTags gracefully", () => {
+		const container = { id: "app-123", name: "my-app", version: 1 };
+		const invalidTags = { env: "prod", count: 123 } as unknown;
 
-		const containersWithMetrics: ContainerWithMetrics[] = [
-			{
-				container: mockContainers[0],
-				metrics: [group],
-			},
-		];
+		const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation();
 
-		const metrics = formatContainerMetrics(
+		const metrics = formatMetricsForContainer(
 			TEST_ACCOUNT_ID,
-			containersWithMetrics,
+			container,
+			[mockMetricsGroups[0]],
 			TEST_TIMESTAMP,
+			invalidTags,
 		);
 
-		// Check CPU p50
-		const cpuP50 = metrics.find(
+		expect(metrics).toHaveLength(14);
+		const cpuMetric = metrics.find(
 			(m) =>
 				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
 		);
-		expect(cpuP50?.points[0]).toEqual([TEST_TIMESTAMP, 0.42]);
-
-		// Check CPU max
-		const cpuMax = metrics.find(
-			(m) =>
-				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:max"),
+		expect(cpuMetric?.tags).not.toContain("count:123");
+		expect(cpuMetric?.tags).not.toContain("env:prod");
+		expect(consoleWarnSpy).toHaveBeenCalledWith(
+			"Invalid DATADOG_TAGS format, ignoring custom tags",
+			expect.objectContaining({ error: expect.any(String) }),
 		);
-		expect(cpuMax?.points[0]).toEqual([TEST_TIMESTAMP, 0.99]);
 
-		// Check memory p99
-		const memoryP99 = metrics.find(
-			(m) =>
-				m.metric === "cloudflare.containers.memory" &&
-				m.tags.includes("stat:p99"),
-		);
-		expect(memoryP99?.points[0]).toEqual([TEST_TIMESTAMP, 300000000]);
-
-		// Check bandwidth rx
-		const bandwidthRx = metrics.find(
-			(m) => m.metric === "cloudflare.containers.bandwidth.rx",
-		);
-		expect(bandwidthRx?.points[0]).toEqual([TEST_TIMESTAMP, 1000000]);
-		expect(bandwidthRx?.type).toBe("count");
+		consoleWarnSpy.mockRestore();
 	});
 
-	it("generates correct metric types", () => {
-		const containersWithMetrics: ContainerWithMetrics[] = [
-			{
-				container: mockContainers[0],
-				metrics: [mockMetricsGroups[0]],
-			},
-		];
+	it("handles empty datadogTags object", () => {
+		const container = { id: "app-123", name: "my-app", version: 1 };
+		const datadogTags = {};
 
-		const metrics = formatContainerMetrics(
+		const metrics = formatMetricsForContainer(
 			TEST_ACCOUNT_ID,
-			containersWithMetrics,
+			container,
+			[mockMetricsGroups[0]],
+			TEST_TIMESTAMP,
+			datadogTags,
+		);
+
+		expect(metrics).toHaveLength(14);
+		const cpuMetric = metrics.find(
+			(m) =>
+				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
+		);
+		expect(cpuMetric).toBeDefined();
+		expect(cpuMetric?.tags).toContain(`account_id:${TEST_ACCOUNT_ID}`);
+	});
+
+	it("handles undefined datadogTags", () => {
+		const container = { id: "app-123", name: "my-app", version: 1 };
+
+		const metrics = formatMetricsForContainer(
+			TEST_ACCOUNT_ID,
+			container,
+			[mockMetricsGroups[0]],
+			TEST_TIMESTAMP,
+			undefined,
+		);
+
+		expect(metrics).toHaveLength(14);
+		const cpuMetric = metrics.find(
+			(m) =>
+				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
+		);
+		expect(cpuMetric).toBeDefined();
+		expect(cpuMetric?.tags).toContain(`account_id:${TEST_ACCOUNT_ID}`);
+	});
+
+	it("returns empty array for no metrics groups", () => {
+		const container = { id: "app-123", name: "my-app", version: 1 };
+		const metrics = formatMetricsForContainer(
+			TEST_ACCOUNT_ID,
+			container,
+			[],
 			TEST_TIMESTAMP,
 		);
-
-		// CPU, Memory, Disk should be gauges
-		const cpuMetrics = metrics.filter(
-			(m) => m.metric === "cloudflare.containers.cpu",
-		);
-		expect(cpuMetrics.every((m) => m.type === "gauge")).toBe(true);
-
-		const memoryMetrics = metrics.filter(
-			(m) => m.metric === "cloudflare.containers.memory",
-		);
-		expect(memoryMetrics.every((m) => m.type === "gauge")).toBe(true);
-
-		const diskMetrics = metrics.filter(
-			(m) => m.metric === "cloudflare.containers.disk",
-		);
-		expect(diskMetrics.every((m) => m.type === "gauge")).toBe(true);
-
-		// Bandwidth should be counts
-		const bandwidthMetrics = metrics.filter((m) =>
-			m.metric.startsWith("cloudflare.containers.bandwidth"),
-		);
-		expect(bandwidthMetrics.every((m) => m.type === "count")).toBe(true);
-	});
-
-	it("returns empty array for empty input", () => {
-		const metrics = formatContainerMetrics(TEST_ACCOUNT_ID, [], TEST_TIMESTAMP);
-		expect(metrics).toHaveLength(0);
-	});
-
-	it("handles containers with no metrics", () => {
-		const containersWithMetrics: ContainerWithMetrics[] = [
-			{
-				container: mockContainers[0],
-				metrics: [],
-			},
-		];
-
-		const metrics = formatContainerMetrics(
-			TEST_ACCOUNT_ID,
-			containersWithMetrics,
-			TEST_TIMESTAMP,
-		);
-
 		expect(metrics).toHaveLength(0);
 	});
 });
@@ -322,6 +211,52 @@ describe("formatHealthMetrics", () => {
 		expect(
 			findGlobalMetric("cloudflare.containers.instances.total.max")?.points[0],
 		).toEqual([TEST_TIMESTAMP, 15]);
+	});
+
+	it("includes custom tags when provided", () => {
+		const datadogTags = { env: "staging", region: "us-west" };
+		const metrics = formatHealthMetrics(
+			TEST_ACCOUNT_ID,
+			mockContainers,
+			TEST_TIMESTAMP,
+			datadogTags,
+		);
+
+		// All metrics should include custom tags
+		const firstMetric = metrics[0];
+		expect(firstMetric.tags).toContain("env:staging");
+		expect(firstMetric.tags).toContain("region:us-west");
+	});
+
+	it("handles invalid datadogTags gracefully", () => {
+		const invalidTags = { valid: "tag", invalid: 999 } as unknown;
+
+		const metrics = formatHealthMetrics(
+			TEST_ACCOUNT_ID,
+			mockContainers,
+			TEST_TIMESTAMP,
+			invalidTags,
+		);
+
+		expect(metrics).toHaveLength(21);
+		const firstMetric = metrics[0];
+		expect(firstMetric.tags).not.toContain("valid:tag");
+		expect(firstMetric.tags).not.toContain("invalid:999");
+	});
+
+	it("handles empty datadogTags object", () => {
+		const datadogTags = {};
+
+		const metrics = formatHealthMetrics(
+			TEST_ACCOUNT_ID,
+			mockContainers,
+			TEST_TIMESTAMP,
+			datadogTags,
+		);
+
+		expect(metrics).toHaveLength(21);
+		const firstMetric = metrics[0];
+		expect(firstMetric.tags).toContain(`account_id:${TEST_ACCOUNT_ID}`);
 	});
 
 	it("includes account_id tag", () => {

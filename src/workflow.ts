@@ -27,17 +27,19 @@ function getMetricsTimeWindow(now: Date = new Date()): {
 	return { start, end };
 }
 
-const STEP_CONFIG = {
-	retries: {
-		limit: 3,
-		delay: "1 second" as const,
-		backoff: "exponential" as const,
-	},
-};
-
 export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 	async run(_event: WorkflowEvent<unknown>, step: WorkflowStep) {
-		const batchSize = Number.parseInt(this.env.BATCH_SIZE || "5000", 10);
+		const batchSize = this.env.BATCH_SIZE ?? 5000;
+		const retryLimit = this.env.RETRY_LIMIT ?? 3;
+		const retryDelaySeconds = this.env.RETRY_DELAY_SECONDS ?? 1;
+
+		const stepConfig = {
+			retries: {
+				limit: retryLimit,
+				delay: `${retryDelaySeconds} second` as const,
+				backoff: "exponential" as const,
+			},
+		};
 
 		// Create a fetcher that proxies requests through a Durable Object in a specific jurisdiction
 		// This ensures GraphQL queries run close to the data source
@@ -70,7 +72,7 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 
 		const containers = await step.do(
 			"fetch containers",
-			STEP_CONFIG,
+			stepConfig,
 			async () => {
 				const result = await cloudflare.listContainers();
 				console.log("Fetched containers", { count: result.length });
@@ -78,6 +80,8 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 				const healthMetrics = formatHealthMetrics(
 					this.env.CLOUDFLARE_ACCOUNT_ID,
 					result,
+					undefined,
+					this.env.DATADOG_TAGS,
 				);
 				await datadog.sendMetrics(healthMetrics);
 
@@ -94,7 +98,7 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 		for (const container of containers) {
 			const count = await step.do(
 				`Download Metrics: ${container.name}`,
-				STEP_CONFIG,
+				stepConfig,
 				async () => {
 					const metricsGroups = await cloudflare.getContainerMetrics(
 						container.id,
@@ -106,6 +110,8 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 						this.env.CLOUDFLARE_ACCOUNT_ID,
 						container,
 						metricsGroups,
+						undefined,
+						this.env.DATADOG_TAGS,
 					);
 
 					const batches = chunk(metrics, batchSize);
@@ -115,7 +121,13 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 							(batch, i) => () =>
 								step.do(
 									`Export Metrics: ${container.name} batch ${i + 1}/${batches.length}`,
-									STEP_CONFIG,
+									{
+										retries: {
+											limit: retryLimit,
+											delay: `${retryDelaySeconds} second` as const,
+											backoff: "exponential" as const,
+										},
+									},
 									async () => {
 										await datadog.sendMetrics(batch);
 									},

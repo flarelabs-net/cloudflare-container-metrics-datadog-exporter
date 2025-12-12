@@ -1,15 +1,27 @@
+import { z } from "zod/v4";
 import type { DatadogMetric } from "./api/datadog";
 import type { Container, MetricsGroup } from "./types";
-
-export interface ContainerWithMetrics {
-	container: Container;
-	metrics: MetricsGroup[];
-}
 
 export interface ContainerInfo {
 	id: string;
 	name: string;
 	version: number;
+}
+
+const DatadogTagsSchema = z.record(z.string(), z.string()).optional();
+
+function parseCustomTags(datadogTags: unknown): string[] {
+	const parsed = DatadogTagsSchema.safeParse(datadogTags);
+	if (!parsed.success) {
+		console.warn("Invalid DATADOG_TAGS format, ignoring custom tags", {
+			error: parsed.error.message,
+		});
+		return [];
+	}
+	if (!parsed.data) {
+		return [];
+	}
+	return Object.entries(parsed.data).map(([key, value]) => `${key}:${value}`);
 }
 
 /**
@@ -20,7 +32,9 @@ export function formatMetricsForContainer(
 	container: ContainerInfo,
 	metricsGroups: MetricsGroup[],
 	timestamp?: number,
+	datadogTags?: unknown,
 ): DatadogMetric[] {
+	const customTags = parseCustomTags(datadogTags);
 	const ts = timestamp ?? Math.floor(Date.now() / 1000);
 	const metrics: DatadogMetric[] = [];
 
@@ -32,6 +46,7 @@ export function formatMetricsForContainer(
 			`version:${container.version}`,
 			`instance_id:${group.dimensions.deploymentId}`,
 			`placement_id:${group.dimensions.placementId}`,
+			...customTags,
 		];
 
 		// CPU metrics
@@ -138,25 +153,6 @@ export function formatMetricsForContainer(
 	return metrics;
 }
 
-/**
- * Format container metrics data into Datadog metrics
- */
-export function formatContainerMetrics(
-	accountId: string,
-	containersWithMetrics: ContainerWithMetrics[],
-	timestamp?: number,
-): DatadogMetric[] {
-	const ts = timestamp ?? Math.floor(Date.now() / 1000);
-	const metrics: DatadogMetric[] = [];
-
-	for (const { container, metrics: groups } of containersWithMetrics) {
-		metrics.push(
-			...formatMetricsForContainer(accountId, container, groups, ts),
-		);
-	}
-
-	return metrics;
-}
 
 /**
  * Format container health data into Datadog metrics
@@ -165,9 +161,11 @@ export function formatHealthMetrics(
 	accountId: string,
 	containers: Container[],
 	timestamp?: number,
+	datadogTags?: unknown,
 ): DatadogMetric[] {
+	const customTags = parseCustomTags(datadogTags);
 	const ts = timestamp ?? Math.floor(Date.now() / 1000);
-	const baseTags = [`account_id:${accountId}`];
+	const baseTags = [`account_id:${accountId}`, ...customTags];
 	const metrics: DatadogMetric[] = [];
 
 	const totals = {
