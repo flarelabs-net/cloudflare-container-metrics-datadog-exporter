@@ -33,7 +33,12 @@
 		}
 	],
 	"vars": {
-		"BATCH_SIZE": "5000",
-		"JURISDICTION": ""
+		"BATCH_SIZE": 5000,
+		"RETRY_LIMIT": 3,
+		"RETRY_DELAY_SECONDS": 1,
+		"JURISDICTION": "",
+		"DATADOG_TAGS": {
+			"env": "sandbox"
+		}
 	}
 }

@@ -33,12 +33,35 @@ To run GraphQL queries from a specific jurisdiction (closer to the data source),
 
 ```jsonc
 "vars": {
-  "BATCH_SIZE": "5000",
-  "JURISDICTION": "eu" // e.g., "eu", "fedramp"
+  "BATCH_SIZE": 5000,
+  "RETRY_LIMIT": 3,
+  "RETRY_DELAY_SECONDS": 1,
+  "JURISDICTION": "eu", // e.g., "eu", "fedramp"
+  "DATADOG_TAGS": {}
 }
 ```
 
 This uses a Durable Object to proxy requests from the specified jurisdiction.
+
+#### Optional: Custom Datadog Tags
+
+Add custom tags to all metrics by setting the `DATADOG_TAGS` variable in `wrangler.jsonc`:
+
+```jsonc
+"vars": {
+  "BATCH_SIZE": 5000,
+  "RETRY_LIMIT": 3,
+  "RETRY_DELAY_SECONDS": 1,
+  "JURISDICTION": "eu",
+  "DATADOG_TAGS": {
+    "env": "production",
+    "team": "platform",
+    "service": "containers"
+  }
+}
+```
+
+These tags will be added to all health and resource metrics sent to Datadog.
 
 ### Verify
 
@@ -123,11 +146,21 @@ See [Datadog's documentation](https://docs.datadoghq.com/dashboards/configure/#c
 
 ## Workflow Behavior
 
-The exporter runs as a Cloudflare Workflow triggered every minute via cron. Each workflow step uses the default retry configuration:
+The exporter runs as a Cloudflare Workflow triggered every minute via cron. Each workflow step uses configurable retry settings:
 
-- **Retries**: 3 attempts
-- **Delay**: 1 second initial delay
-- **Backoff**: Exponential (1s, 2s, 4s)
+- **Retries**: Configurable via `RETRY_LIMIT` (default: 3 attempts)
+- **Delay**: Configurable via `RETRY_DELAY_SECONDS` (default: 1 second initial delay)
+- **Backoff**: Exponential (e.g., 1s, 2s, 4s)
 
 Steps will automatically retry on transient failures (API errors, network issues).
+
+### Configuration Options
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `BATCH_SIZE` | number | 5000 | Maximum metrics per Datadog API request |
+| `RETRY_LIMIT` | number | 3 | Number of retry attempts for failed workflow steps |
+| `RETRY_DELAY_SECONDS` | number | 1 | Initial delay in seconds before retry (exponential backoff) |
+| `JURISDICTION` | string | "" | Durable Object jurisdiction for GraphQL queries (e.g., "eu", "fedramp") |
+| `DATADOG_TAGS` | object | {} | Custom tags to add to all metrics |
 
