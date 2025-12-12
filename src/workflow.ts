@@ -121,7 +121,7 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 							(batch, i) => () =>
 								step.do(
 									`Export Metrics: ${container.name} batch ${i + 1}/${batches.length}`,
-stepConfig
+									stepConfig,
 									async () => {
 										await datadog.sendMetrics(batch);
 									},
