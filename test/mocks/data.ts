@@ -78,6 +78,7 @@ export const mockMetricsGroups: MetricsGroup[] = [
 			datetimeMinute: "2025-12-05T16:00:00Z",
 			deploymentId: "instance-001",
 			placementId: "placement-us-east-1",
+			durableObjectId: "do-abc-123",
 		},
 	},
 	{
@@ -171,6 +172,7 @@ export function createMockMetricsGroup(
 			datetimeMinute: new Date().toISOString(),
 			deploymentId: "instance-001",
 			placementId: "placement-us-east-1",
+			durableObjectId: "do-abc-123",
 			...overrides.dimensions,
 		},
 	};
