@@ -40,6 +40,7 @@ const MetricsDimensionsSchema = z.object({
 	datetimeMinute: z.string(),
 	deploymentId: z.string(),
 	placementId: z.string(),
+	durableObjectId: z.string().optional(),
 });
 
 const MetricsQuantilesSchema = z.object({

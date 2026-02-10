@@ -46,6 +46,9 @@ export function formatMetricsForContainer(
 			`version:${container.version}`,
 			`instance_id:${group.dimensions.deploymentId}`,
 			`placement_id:${group.dimensions.placementId}`,
+			...(group.dimensions.durableObjectId
+				? [`durable_object_id:${group.dimensions.durableObjectId}`]
+				: []),
 			...customTags,
 		];
 

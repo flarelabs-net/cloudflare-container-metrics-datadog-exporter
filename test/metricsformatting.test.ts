@@ -44,6 +44,7 @@ describe("formatMetricsForContainer", () => {
 				datetimeMinute: "2025-12-05T16:00:00Z",
 				deploymentId: "instance-test",
 				placementId: "placement-test",
+				durableObjectId: "do-test-456",
 			},
 		});
 
@@ -66,6 +67,37 @@ describe("formatMetricsForContainer", () => {
 		expect(cpuMetric?.tags).toContain("version:1");
 		expect(cpuMetric?.tags).toContain("instance_id:instance-test");
 		expect(cpuMetric?.tags).toContain("placement_id:placement-test");
+		expect(cpuMetric?.tags).toContain("durable_object_id:do-test-456");
+	});
+
+	it("omits durable_object_id tag when not present", () => {
+		const container = { id: "app-123", name: "my-app", version: 1 };
+		const group = createMockMetricsGroup({
+			dimensions: {
+				applicationId: "app-test",
+				datetimeMinute: "2025-12-05T16:00:00Z",
+				deploymentId: "instance-test",
+				placementId: "placement-test",
+				durableObjectId: undefined,
+			},
+		});
+
+		const metrics = formatMetricsForContainer(
+			TEST_ACCOUNT_ID,
+			container,
+			[group],
+			TEST_TIMESTAMP,
+		);
+
+		const cpuMetric = metrics.find(
+			(m) =>
+				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
+		);
+
+		expect(cpuMetric).toBeDefined();
+		expect(
+			cpuMetric?.tags.some((t) => t.startsWith("durable_object_id:")),
+		).toBe(false);
 	});
 
 	it("includes custom tags when provided", () => {

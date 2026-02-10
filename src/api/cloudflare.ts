@@ -53,6 +53,7 @@ query GetCloudchamberMetrics($accountTag: string!, $datetimeStart: Time, $dateti
           applicationId
           deploymentId
           placementId
+          durableObjectId
         }
       }
     }
