@@ -44,23 +44,28 @@
 								"style": { "palette": "green" }
 							},
 							{
-								"alias": "Starting",
+								"alias": "Assigned",
 								"formula": "query2",
+								"style": { "palette": "orange" }
+							},
+							{
+								"alias": "Starting",
+								"formula": "query3",
 								"style": { "palette": "blue" }
 							},
 							{
 								"alias": "Scheduling",
-								"formula": "query3",
+								"formula": "query4",
 								"style": { "palette": "purple" }
 							},
 							{
 								"alias": "Failed",
-								"formula": "query4",
+								"formula": "query5",
 								"style": { "palette": "red" }
 							},
 							{
 								"alias": "Stopped",
-								"formula": "query5",
+								"formula": "query6",
 								"style": { "palette": "gray" }
 							}
 						],
@@ -73,20 +78,25 @@
 							{
 								"name": "query2",
 								"data_source": "metrics",
-								"query": "sum:cloudflare.containers.instances.starting{$application_name}"
+								"query": "sum:cloudflare.containers.instances.assigned{$application_name}"
 							},
 							{
 								"name": "query3",
 								"data_source": "metrics",
-								"query": "sum:cloudflare.containers.instances.scheduling{$application_name}"
+								"query": "sum:cloudflare.containers.instances.starting{$application_name}"
 							},
 							{
 								"name": "query4",
 								"data_source": "metrics",
-								"query": "sum:cloudflare.containers.instances.failed{$application_name}"
+								"query": "sum:cloudflare.containers.instances.scheduling{$application_name}"
 							},
 							{
 								"name": "query5",
+								"data_source": "metrics",
+								"query": "sum:cloudflare.containers.instances.failed{$application_name}"
+							},
+							{
+								"name": "query6",
 								"data_source": "metrics",
 								"query": "sum:cloudflare.containers.instances.stopped{$application_name}"
 							}

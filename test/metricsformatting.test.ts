@@ -211,8 +211,8 @@ describe("formatHealthMetrics", () => {
 			TEST_TIMESTAMP,
 		);
 
-		// 2 containers × 7 per-app metrics + 7 global totals = 21 metrics
-		expect(metrics).toHaveLength(21);
+		// 2 containers × 8 per-app metrics + 8 global totals = 24 metrics
+		expect(metrics).toHaveLength(24);
 
 		// Find global metrics (only account_id tag, no application tags)
 		const findGlobalMetric = (name: string) =>
@@ -223,12 +223,16 @@ describe("formatHealthMetrics", () => {
 					m.tags[0].startsWith("account_id:"),
 			);
 
-		// mockContainers[0]: active=5, healthy=5, stopped=0, failed=0, max=10
-		// mockContainers[1]: active=3, healthy=2, stopped=0, failed=1, max=5
+		// mockContainers[0]: active=5, assigned=5, healthy=5, stopped=0, failed=0, max=10
+		// mockContainers[1]: active=3, assigned=2, healthy=2, stopped=0, failed=1, max=5
 		expect(
 			findGlobalMetric("cloudflare.containers.instances.total.active")
 				?.points[0],
 		).toEqual([TEST_TIMESTAMP, 8]);
+		expect(
+			findGlobalMetric("cloudflare.containers.instances.total.assigned")
+				?.points[0],
+		).toEqual([TEST_TIMESTAMP, 7]);
 		expect(
 			findGlobalMetric("cloudflare.containers.instances.total.healthy")
 				?.points[0],
@@ -267,7 +271,7 @@ describe("formatHealthMetrics", () => {
 			invalidTags,
 		);
 
-		expect(metrics).toHaveLength(21);
+		expect(metrics).toHaveLength(24);
 		const firstMetric = metrics[0];
 		expect(firstMetric.tags).not.toContain("valid:tag");
 		expect(firstMetric.tags).not.toContain("invalid:999");
@@ -283,7 +287,7 @@ describe("formatHealthMetrics", () => {
 			datadogTags,
 		);
 
-		expect(metrics).toHaveLength(21);
+		expect(metrics).toHaveLength(24);
 		const firstMetric = metrics[0];
 		expect(firstMetric.tags).toContain(`account_id:${TEST_ACCOUNT_ID}`);
 	});
@@ -315,8 +319,8 @@ describe("formatHealthMetrics", () => {
 	it("returns zeros for empty containers list", () => {
 		const metrics = formatHealthMetrics(TEST_ACCOUNT_ID, [], TEST_TIMESTAMP);
 
-		// Only global totals (7 metrics) when no containers
-		expect(metrics).toHaveLength(7);
+		// Only global totals (8 metrics) when no containers
+		expect(metrics).toHaveLength(8);
 
 		for (const metric of metrics) {
 			expect(metric.points[0][1]).toBe(0);

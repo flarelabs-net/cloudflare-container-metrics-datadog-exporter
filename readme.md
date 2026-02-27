@@ -91,6 +91,7 @@ All metrics are prefixed with `cloudflare.containers.`.
 | Metric | Type | Description |
 |--------|------|-------------|
 | `instances.active` | gauge | Number of active instances |
+| `instances.assigned` | gauge | Number of assigned instances |
 | `instances.healthy` | gauge | Number of healthy instances |
 | `instances.stopped` | gauge | Number of stopped instances |
 | `instances.failed` | gauge | Number of failed instances |
@@ -105,6 +106,7 @@ All metrics are prefixed with `cloudflare.containers.`.
 | Metric | Type | Description |
 |--------|------|-------------|
 | `instances.total.active` | gauge | Total active instances |
+| `instances.total.assigned` | gauge | Total assigned instances |
 | `instances.total.healthy` | gauge | Total healthy instances |
 | `instances.total.stopped` | gauge | Total stopped instances |
 | `instances.total.failed` | gauge | Total failed instances |
@@ -163,4 +165,3 @@ Steps will automatically retry on transient failures (API errors, network issues
 | `RETRY_DELAY_SECONDS` | number | 1 | Initial delay in seconds before retry (exponential backoff) |
 | `JURISDICTION` | string | "" | Durable Object jurisdiction for GraphQL queries (e.g., "eu", "fedramp") |
 | `DATADOG_TAGS` | object | {} | Custom tags to add to all metrics |
-
