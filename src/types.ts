@@ -5,6 +5,7 @@ import { z } from "zod/v4";
 const InstancesSchema = z.object({
 	durable_objects_active: z.number().optional(),
 	active: z.number().optional(),
+	assigned: z.number().optional(),
 	stopped: z.number().optional(),
 	healthy: z.number().optional(),
 	failed: z.number().optional(),

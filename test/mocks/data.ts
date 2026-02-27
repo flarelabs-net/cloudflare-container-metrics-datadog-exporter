@@ -17,6 +17,7 @@ export const mockContainers: Container[] = [
 		health: {
 			instances: {
 				active: 5,
+				assigned: 5,
 				healthy: 5,
 				stopped: 0,
 				failed: 0,
@@ -36,6 +37,7 @@ export const mockContainers: Container[] = [
 		health: {
 			instances: {
 				active: 3,
+				assigned: 2,
 				healthy: 2,
 				stopped: 0,
 				failed: 1,

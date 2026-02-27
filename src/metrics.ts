@@ -172,6 +172,7 @@ export function formatHealthMetrics(
 
 	const totals = {
 		active: 0,
+		assigned: 0,
 		healthy: 0,
 		stopped: 0,
 		failed: 0,
@@ -189,6 +190,7 @@ export function formatHealthMetrics(
 
 		const instances = container.health?.instances;
 		const active = instances?.active ?? 0;
+		const assigned = instances?.assigned ?? 0;
 		const healthy = instances?.healthy ?? 0;
 		const stopped = instances?.stopped ?? 0;
 		const failed = instances?.failed ?? 0;
@@ -198,6 +200,7 @@ export function formatHealthMetrics(
 
 		// Aggregate totals
 		totals.active += active;
+		totals.assigned += assigned;
 		totals.healthy += healthy;
 		totals.stopped += stopped;
 		totals.failed += failed;
@@ -211,6 +214,12 @@ export function formatHealthMetrics(
 				metric: "cloudflare.containers.instances.active",
 				type: "gauge",
 				points: [[ts, active]],
+				tags: appTags,
+			},
+			{
+				metric: "cloudflare.containers.instances.assigned",
+				type: "gauge",
+				points: [[ts, assigned]],
 				tags: appTags,
 			},
 			{
@@ -258,6 +267,12 @@ export function formatHealthMetrics(
 			metric: "cloudflare.containers.instances.total.active",
 			type: "gauge",
 			points: [[ts, totals.active]],
+			tags: baseTags,
+		},
+		{
+			metric: "cloudflare.containers.instances.total.assigned",
+			type: "gauge",
+			points: [[ts, totals.assigned]],
 			tags: baseTags,
 		},
 		{
