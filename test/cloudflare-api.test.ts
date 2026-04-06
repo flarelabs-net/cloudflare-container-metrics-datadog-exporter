@@ -50,6 +50,44 @@ describe("CloudflareApi", () => {
 				expect.objectContaining({
 					headers: expect.objectContaining({
 						Authorization: "Bearer test-token",
+						"User-Agent": "cloudflare-container-metrics-datadog-exporter",
+					}),
+				}),
+			);
+		});
+
+		it("sets a descriptive user agent on GraphQL requests", async () => {
+			const customFetcher = vi.fn().mockResolvedValue(
+				new Response(
+					JSON.stringify({
+						data: {
+							viewer: {
+								accounts: [{ cloudchamberMetricsAdaptiveGroups: [] }],
+							},
+						},
+						errors: null,
+					}),
+				),
+			);
+
+			const api = createCloudflareApi(
+				"test-account",
+				"test-token",
+				customFetcher,
+			);
+
+			await api.getContainerMetrics(
+				"app-id",
+				new Date("2026-04-06T10:41:00.000Z"),
+				new Date("2026-04-06T10:42:00.000Z"),
+			);
+
+			expect(customFetcher).toHaveBeenCalledWith(
+				"https://api.cloudflare.com/client/v4/graphql",
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						Authorization: "Bearer test-token",
+						"User-Agent": "cloudflare-container-metrics-datadog-exporter",
 					}),
 				}),
 			);
