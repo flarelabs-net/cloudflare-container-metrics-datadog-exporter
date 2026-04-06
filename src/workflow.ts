@@ -2,6 +2,7 @@ import {
 	WorkflowEntrypoint,
 	type WorkflowEvent,
 	type WorkflowStep,
+	type WorkflowStepConfig,
 } from "cloudflare:workers";
 import pAll from "p-all";
 import { createCloudflareApi } from "./api/cloudflare";
@@ -9,37 +10,45 @@ import { createDatadogApi } from "./api/datadog";
 import { formatHealthMetrics, formatMetricsForContainer } from "./metrics";
 import { chunk } from "./utils";
 
+interface MetricsWorkflowParams {
+	scheduledTime?: number;
+}
+
 /**
  * Calculate the metrics time window.
  * With ~40-50s delay in Cloudflare metrics, we fetch the previous complete minute.
  * e.g., if cron runs at 10:43:xx, we fetch metrics from 10:41:00 to 10:42:00
  */
-function getMetricsTimeWindow(now: Date = new Date()): {
+export function getMetricsTimeWindow(scheduledTimeMs: number): {
 	start: Date;
 	end: Date;
 } {
-	const currentMinute = new Date(now);
-	currentMinute.setSeconds(0, 0);
-
-	const end = new Date(currentMinute.getTime() - 60 * 1000);
-	const start = new Date(end.getTime() - 60 * 1000);
+	const scheduledMinute = scheduledTimeMs - (scheduledTimeMs % 60_000);
+	const end = new Date(scheduledMinute - 60_000);
+	const start = new Date(end.getTime() - 60_000);
 
 	return { start, end };
 }
 
-export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
-	async run(_event: WorkflowEvent<unknown>, step: WorkflowStep) {
+export class MetricsExporterWorkflow extends WorkflowEntrypoint<
+	Env,
+	MetricsWorkflowParams
+> {
+	async run(event: WorkflowEvent<MetricsWorkflowParams>, step: WorkflowStep) {
 		const batchSize = this.env.BATCH_SIZE ?? 5000;
 		const retryLimit = this.env.RETRY_LIMIT ?? 3;
 		const retryDelaySeconds = this.env.RETRY_DELAY_SECONDS ?? 1;
 
-		const stepConfig = {
+		const retryStepConfig: WorkflowStepConfig = {
 			retries: {
 				limit: retryLimit,
 				delay: `${retryDelaySeconds} seconds` as const,
 				backoff: "exponential" as const,
 			},
 		};
+
+		const scheduledTime =
+			event.payload?.scheduledTime ?? event.timestamp.getTime();
 
 		// Create a fetcher that proxies requests through a Durable Object in a specific jurisdiction
 		// This ensures GraphQL queries run close to the data source
@@ -64,15 +73,17 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 			this.env.DATADOG_SITE,
 		);
 
-		const { start, end } = getMetricsTimeWindow();
+		const { start, end } = getMetricsTimeWindow(scheduledTime);
 		console.log("Workflow started", {
+			instanceId: event.instanceId,
+			scheduledTime: new Date(scheduledTime).toISOString(),
 			start: start.toISOString(),
 			end: end.toISOString(),
 		});
 
 		const containers = await step.do(
 			"fetch containers",
-			stepConfig,
+			retryStepConfig,
 			async () => {
 				const result = await cloudflare.listContainers();
 				console.log("Fetched containers", { count: result.length });
@@ -98,7 +109,13 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 		for (const container of containers) {
 			const count = await step.do(
 				`Download Metrics: ${container.name}`,
-				stepConfig,
+				{
+					retries: {
+						limit: retryLimit > 0 ? 1 : 0,
+						delay: "45 seconds" as const,
+						backoff: "constant" as const,
+					},
+				},
 				async () => {
 					const metricsGroups = await cloudflare.getContainerMetrics(
 						container.id,
@@ -121,7 +138,7 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env> {
 							(batch, i) => () =>
 								step.do(
 									`Export Metrics: ${container.name} batch ${i + 1}/${batches.length}`,
-									stepConfig,
+									retryStepConfig,
 									async () => {
 										await datadog.sendMetrics(batch);
 									},
