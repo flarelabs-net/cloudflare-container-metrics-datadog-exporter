@@ -19,8 +19,8 @@ describe("formatMetricsForContainer", () => {
 			TEST_TIMESTAMP,
 		);
 
-		// 4 CPU + 4 Memory + 4 Disk + 2 Bandwidth = 14 metrics per group
-		expect(metrics).toHaveLength(14);
+		// 5 CPU + 4 Memory + 5 Disk + 2 Bandwidth + 1 Uptime = 17 metrics per group
+		expect(metrics).toHaveLength(17);
 	});
 
 	it("formats multiple metrics groups", () => {
@@ -32,8 +32,8 @@ describe("formatMetricsForContainer", () => {
 			TEST_TIMESTAMP,
 		);
 
-		// 2 groups * 14 metrics = 28 metrics
-		expect(metrics).toHaveLength(28);
+		// 2 groups * 17 metrics = 34 metrics
+		expect(metrics).toHaveLength(34);
 	});
 
 	it("includes correct tags", () => {
@@ -128,7 +128,9 @@ describe("formatMetricsForContainer", () => {
 		const container = { id: "app-123", name: "my-app", version: 1 };
 		const invalidTags = { env: "prod", count: 123 } as unknown;
 
-		const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation();
+		const consoleWarnSpy = vi
+			.spyOn(console, "warn")
+			.mockImplementation(() => {});
 
 		const metrics = formatMetricsForContainer(
 			TEST_ACCOUNT_ID,
@@ -138,7 +140,7 @@ describe("formatMetricsForContainer", () => {
 			invalidTags,
 		);
 
-		expect(metrics).toHaveLength(14);
+		expect(metrics).toHaveLength(17);
 		const cpuMetric = metrics.find(
 			(m) =>
 				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
@@ -165,7 +167,7 @@ describe("formatMetricsForContainer", () => {
 			datadogTags,
 		);
 
-		expect(metrics).toHaveLength(14);
+		expect(metrics).toHaveLength(17);
 		const cpuMetric = metrics.find(
 			(m) =>
 				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
@@ -185,7 +187,7 @@ describe("formatMetricsForContainer", () => {
 			undefined,
 		);
 
-		expect(metrics).toHaveLength(14);
+		expect(metrics).toHaveLength(17);
 		const cpuMetric = metrics.find(
 			(m) =>
 				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),

@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import {
-	CloudchamberMetricsResponse,
 	Container,
+	ContainersMetricsResponse,
 	type MetricsGroup,
 } from "../types";
 
@@ -26,18 +26,21 @@ export interface GraphQLResponse<T> {
 const USER_AGENT = "cloudflare-container-metrics-datadog-exporter";
 
 const CONTAINERS_METRICS_QUERY = `
-query GetCloudchamberMetrics($accountTag: string!, $datetimeStart: Time, $datetimeEnd: Time, $applicationId: string!) {
+query GetContainersMetrics($accountTag: string!, $datetimeStart: Time, $datetimeEnd: Time, $applicationId: string!) {
   viewer {
     accounts(filter: {accountTag: $accountTag}) {
-      cloudchamberMetricsAdaptiveGroups(limit: 10000, filter: {applicationId: $applicationId, datetimeMinute_geq: $datetimeStart, datetimeMinute_leq: $datetimeEnd}) {
+      containersMetricsAdaptiveGroups(limit: 10000, filter: {applicationId: $applicationId, datetimeMinute_geq: $datetimeStart, datetimeMinute_lt: $datetimeEnd}) {
         max {
           memory
-          cpuLoad
+          cpuUtilization
           diskUsage
+          diskAvailable
+          containerUptime
         }
         sum {
           rxBytes
           txBytes
+          cpuTimeSec
         }
         quantiles {
           memoryP50
@@ -46,9 +49,9 @@ query GetCloudchamberMetrics($accountTag: string!, $datetimeStart: Time, $dateti
           diskUsageP50
           diskUsageP90
           diskUsageP99
-          cpuLoadP50
-          cpuLoadP90
-          cpuLoadP99
+          cpuUtilizationP50
+          cpuUtilizationP90
+          cpuUtilizationP99
         }
         dimensions {
           datetimeMinute
@@ -142,7 +145,7 @@ export class CloudflareApi {
 			);
 		}
 
-		const data = CloudchamberMetricsResponse.parse(await response.json());
+		const data = ContainersMetricsResponse.parse(await response.json());
 
 		if (data.errors && data.errors.length > 0) {
 			console.error("GraphQL errors", {
@@ -163,7 +166,7 @@ export class CloudflareApi {
 		}
 
 		const groups =
-			data.data.viewer?.accounts?.[0]?.cloudchamberMetricsAdaptiveGroups ?? [];
+			data.data.viewer?.accounts?.[0]?.containersMetricsAdaptiveGroups ?? [];
 
 		console.log("Fetched container metrics", {
 			applicationId,

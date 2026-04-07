@@ -62,7 +62,7 @@ describe("CloudflareApi", () => {
 					JSON.stringify({
 						data: {
 							viewer: {
-								accounts: [{ cloudchamberMetricsAdaptiveGroups: [] }],
+								accounts: [{ containersMetricsAdaptiveGroups: [] }],
 							},
 						},
 						errors: null,

@@ -1,6 +1,6 @@
 import type {
-	CloudchamberMetricsResponse,
 	Container,
+	ContainersMetricsResponse,
 	MetricsGroup,
 } from "../../src/types";
 
@@ -56,24 +56,27 @@ export const mockContainers: Container[] = [
 export const mockMetricsGroups: MetricsGroup[] = [
 	{
 		max: {
-			cpuLoad: 0.75,
-			memory: 402653184, // 384 MB
-			diskUsage: 2147483648, // 2 GB
+			cpuUtilization: 0.75,
+			memory: 402653184, // 384 MiB
+			diskUsage: 2147483648, // 2 GiB
+			diskAvailable: 3221225472, // 3 GiB
+			containerUptime: 120000,
 		},
 		quantiles: {
-			memoryP50: 234881024, // 224 MB
-			memoryP90: 335544320, // 320 MB
-			memoryP99: 385875968, // 368 MB
-			diskUsageP50: 1073741824, // 1 GB
-			diskUsageP90: 1610612736, // 1.5 GB
-			diskUsageP99: 2040109465, // ~1.9 GB
-			cpuLoadP50: 0.2,
-			cpuLoadP90: 0.5,
-			cpuLoadP99: 0.7,
+			memoryP50: 234881024, // 224 MiB
+			memoryP90: 335544320, // 320 MiB
+			memoryP99: 385875968, // 368 MiB
+			diskUsageP50: 1073741824, // 1 GiB
+			diskUsageP90: 1610612736, // 1.5 GiB
+			diskUsageP99: 2040109465, // ~1.9 GiB
+			cpuUtilizationP50: 0.2,
+			cpuUtilizationP90: 0.5,
+			cpuUtilizationP99: 0.7,
 		},
 		sum: {
-			rxBytes: 104857600, // 100 MB
-			txBytes: 52428800, // 50 MB
+			rxBytes: 104857600, // 100 MiB
+			txBytes: 52428800, // 50 MiB
+			cpuTimeSec: 45,
 		},
 		dimensions: {
 			applicationId: "app-123-abc",
@@ -85,24 +88,27 @@ export const mockMetricsGroups: MetricsGroup[] = [
 	},
 	{
 		max: {
-			cpuLoad: 0.45,
-			memory: 201326592, // 192 MB
-			diskUsage: 1073741824, // 1 GB
+			cpuUtilization: 0.45,
+			memory: 201326592, // 192 MiB
+			diskUsage: 1073741824, // 1 GiB
+			diskAvailable: 2147483648, // 2 GiB
+			containerUptime: 60000,
 		},
 		quantiles: {
-			memoryP50: 117440512, // 112 MB
-			memoryP90: 167772160, // 160 MB
-			memoryP99: 192937984, // 184 MB
-			diskUsageP50: 536870912, // 512 MB
-			diskUsageP90: 805306368, // 768 MB
-			diskUsageP99: 1020054732, // ~973 MB
-			cpuLoadP50: 0.1,
-			cpuLoadP90: 0.3,
-			cpuLoadP99: 0.4,
+			memoryP50: 117440512, // 112 MiB
+			memoryP90: 167772160, // 160 MiB
+			memoryP99: 192937984, // 184 MiB
+			diskUsageP50: 536870912, // 512 MiB
+			diskUsageP90: 805306368, // 768 MiB
+			diskUsageP99: 1020054732, // ~973 MiB
+			cpuUtilizationP50: 0.1,
+			cpuUtilizationP90: 0.3,
+			cpuUtilizationP99: 0.4,
 		},
 		sum: {
-			rxBytes: 52428800, // 50 MB
-			txBytes: 26214400, // 25 MB
+			rxBytes: 52428800, // 50 MiB
+			txBytes: 26214400, // 25 MiB
+			cpuTimeSec: 20,
 		},
 		dimensions: {
 			applicationId: "app-123-abc",
@@ -116,12 +122,12 @@ export const mockMetricsGroups: MetricsGroup[] = [
 /**
  * Mock GraphQL response for container metrics
  */
-export const mockGraphQLResponse: CloudchamberMetricsResponse = {
+export const mockGraphQLResponse: ContainersMetricsResponse = {
 	data: {
 		viewer: {
 			accounts: [
 				{
-					cloudchamberMetricsAdaptiveGroups: mockMetricsGroups,
+					containersMetricsAdaptiveGroups: mockMetricsGroups,
 				},
 			],
 		},
@@ -147,9 +153,11 @@ export function createMockMetricsGroup(
 ): MetricsGroup {
 	return {
 		max: {
-			cpuLoad: 0.75,
+			cpuUtilization: 0.75,
 			memory: 402653184,
 			diskUsage: 2147483648,
+			diskAvailable: 3221225472,
+			containerUptime: 120000,
 			...overrides.max,
 		},
 		quantiles: {
@@ -159,14 +167,15 @@ export function createMockMetricsGroup(
 			diskUsageP50: 1073741824,
 			diskUsageP90: 1610612736,
 			diskUsageP99: 2040109465,
-			cpuLoadP50: 0.2,
-			cpuLoadP90: 0.5,
-			cpuLoadP99: 0.7,
+			cpuUtilizationP50: 0.2,
+			cpuUtilizationP90: 0.5,
+			cpuUtilizationP99: 0.7,
 			...overrides.quantiles,
 		},
 		sum: {
 			rxBytes: 104857600,
 			txBytes: 52428800,
+			cpuTimeSec: 45,
 			...overrides.sum,
 		},
 		dimensions: {

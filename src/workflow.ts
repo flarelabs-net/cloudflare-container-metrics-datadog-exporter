@@ -17,15 +17,19 @@ interface MetricsWorkflowParams {
 /**
  * Calculate the metrics time window.
  * With ~40-50s delay in Cloudflare metrics, we fetch the previous complete minute.
- * e.g., if cron runs at 10:43:xx, we fetch metrics from 10:41:00 to 10:42:00
+ * The returned range is half-open: [start, end).
+ * e.g., if cron runs at 10:43:xx, we fetch metrics from 10:41:00 up to but not including 10:42:00.
  */
-export function getMetricsTimeWindow(scheduledTimeMs: number): {
+export function getMetricsTimeWindow(
+	scheduledTimeMs: number,
+	windowMinutes = 1,
+): {
 	start: Date;
 	end: Date;
 } {
 	const scheduledMinute = scheduledTimeMs - (scheduledTimeMs % 60_000);
 	const end = new Date(scheduledMinute - 60_000);
-	const start = new Date(end.getTime() - 60_000);
+	const start = new Date(end.getTime() - Math.max(1, windowMinutes) * 60_000);
 
 	return { start, end };
 }
