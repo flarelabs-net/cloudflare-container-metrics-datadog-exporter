@@ -23,6 +23,8 @@ export interface GraphQLResponse<T> {
 	errors: { message: string; path: string[] | null }[] | null;
 }
 
+const USER_AGENT = "cloudflare-container-metrics-datadog-exporter";
+
 const CONTAINERS_METRICS_QUERY = `
 query GetCloudchamberMetrics($accountTag: string!, $datetimeStart: Time, $datetimeEnd: Time, $applicationId: string!) {
   viewer {
@@ -75,6 +77,7 @@ export class CloudflareApi {
 		return {
 			Authorization: `Bearer ${this.config.apiToken}`,
 			"Content-Type": "application/json",
+			"User-Agent": USER_AGENT,
 		};
 	}
 
