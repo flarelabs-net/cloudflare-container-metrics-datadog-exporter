@@ -19,7 +19,7 @@ function validateEnv(env: Env): string[] {
 
 export default {
 	async scheduled(
-		_controller: ScheduledController,
+		controller: ScheduledController,
 		env: Env,
 		_ctx: ExecutionContext,
 	): Promise<void> {
@@ -32,7 +32,9 @@ export default {
 			return;
 		}
 
-		await env.METRICS_WORKFLOW.create();
+		await env.METRICS_WORKFLOW.create({
+			params: { scheduledTime: controller.scheduledTime },
+		});
 	},
 
 	async fetch(_req: Request): Promise<Response> {
