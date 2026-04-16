@@ -17,7 +17,8 @@
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
 		"test": "vitest",
-		"token-setup": "node scripts/token-setup.ts"
+		"token-setup": "node scripts/token-setup.ts",
+		"format": "oxfmt"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
@@ -26,6 +27,7 @@
 		"@typescript/native-preview": "^7.0.0-dev.20250601",
 		"consola": "^3.4.2",
 		"open": "^11.0.0",
+		"oxfmt": "^0.45.0",
 		"typescript": "^5.0.4",
 		"vitest": "~3.0.0",
 		"wrangler": "^4.53.0"
