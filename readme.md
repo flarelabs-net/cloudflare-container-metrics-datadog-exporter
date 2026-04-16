@@ -68,11 +68,13 @@ These tags will be added to all health and resource metrics sent to Datadog.
 ```bash
 npx wrangler dev
 ```
+
 In another terminal run:
 
 ```
 curl "http://localhost:8787/cdn-cgi/handler/scheduled"
 ```
+
 You should see an "Ok" response from the curl and logs from the exporter.
 
 ### Deploy
@@ -88,31 +90,31 @@ All metrics are prefixed with `cloudflare.containers.`.
 
 ### Instance Health (per-application)
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `instances.active` | gauge | Number of active instances |
-| `instances.assigned` | gauge | Number of assigned instances |
-| `instances.healthy` | gauge | Number of healthy instances |
-| `instances.stopped` | gauge | Number of stopped instances |
-| `instances.failed` | gauge | Number of failed instances |
+| Metric                 | Type  | Description                    |
+| ---------------------- | ----- | ------------------------------ |
+| `instances.active`     | gauge | Number of active instances     |
+| `instances.assigned`   | gauge | Number of assigned instances   |
+| `instances.healthy`    | gauge | Number of healthy instances    |
+| `instances.stopped`    | gauge | Number of stopped instances    |
+| `instances.failed`     | gauge | Number of failed instances     |
 | `instances.scheduling` | gauge | Number of scheduling instances |
-| `instances.starting` | gauge | Number of starting instances |
-| `instances.max` | gauge | Max instances configured |
+| `instances.starting`   | gauge | Number of starting instances   |
+| `instances.max`        | gauge | Max instances configured       |
 
 **Tags:** `account_id`, `application_id`, `application_name`
 
 ### Instance Health (global totals)
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `instances.total.active` | gauge | Total active instances |
-| `instances.total.assigned` | gauge | Total assigned instances |
-| `instances.total.healthy` | gauge | Total healthy instances |
-| `instances.total.stopped` | gauge | Total stopped instances |
-| `instances.total.failed` | gauge | Total failed instances |
+| Metric                       | Type  | Description                |
+| ---------------------------- | ----- | -------------------------- |
+| `instances.total.active`     | gauge | Total active instances     |
+| `instances.total.assigned`   | gauge | Total assigned instances   |
+| `instances.total.healthy`    | gauge | Total healthy instances    |
+| `instances.total.stopped`    | gauge | Total stopped instances    |
+| `instances.total.failed`     | gauge | Total failed instances     |
 | `instances.total.scheduling` | gauge | Total scheduling instances |
-| `instances.total.starting` | gauge | Total starting instances |
-| `instances.total.max` | gauge | Total max instances |
+| `instances.total.starting`   | gauge | Total starting instances   |
+| `instances.total.max`        | gauge | Total max instances        |
 
 **Tags:** `account_id`
 
@@ -120,12 +122,12 @@ Use `instances.total.max - instances.total.healthy` to calculate available capac
 
 ### Resource Metrics
 
-| Metric | Type | Unit | Description |
-|--------|------|------|-------------|
-| `cpu` | gauge | vCPU | CPU load |
-| `memory` | gauge | MiB | Memory usage |
-| `disk` | gauge | MB | Disk usage |
-| `bandwidth.rx` | count | bytes | Bytes received |
+| Metric         | Type  | Unit  | Description       |
+| -------------- | ----- | ----- | ----------------- |
+| `cpu`          | gauge | vCPU  | CPU load          |
+| `memory`       | gauge | MiB   | Memory usage      |
+| `disk`         | gauge | MB    | Disk usage        |
+| `bandwidth.rx` | count | bytes | Bytes received    |
 | `bandwidth.tx` | count | bytes | Bytes transmitted |
 
 **Tags:** `account_id`, `application_id`, `application_name`, `version`, `instance_id`, `placement_id`, `stat`
@@ -158,10 +160,10 @@ Steps will automatically retry on transient failures (API errors, network issues
 
 ### Configuration Options
 
-| Variable | Type | Default | Description |
-|----------|------|---------|-------------|
-| `BATCH_SIZE` | number | 5000 | Maximum metrics per Datadog API request |
-| `RETRY_LIMIT` | number | 3 | Number of retry attempts for failed workflow steps |
-| `RETRY_DELAY_SECONDS` | number | 1 | Initial delay in seconds before retry (exponential backoff) |
-| `JURISDICTION` | string | "" | Durable Object jurisdiction for GraphQL queries (e.g., "eu", "fedramp") |
-| `DATADOG_TAGS` | object | {} | Custom tags to add to all metrics |
+| Variable              | Type   | Default | Description                                                             |
+| --------------------- | ------ | ------- | ----------------------------------------------------------------------- |
+| `BATCH_SIZE`          | number | 5000    | Maximum metrics per Datadog API request                                 |
+| `RETRY_LIMIT`         | number | 3       | Number of retry attempts for failed workflow steps                      |
+| `RETRY_DELAY_SECONDS` | number | 1       | Initial delay in seconds before retry (exponential backoff)             |
+| `JURISDICTION`        | string | ""      | Durable Object jurisdiction for GraphQL queries (e.g., "eu", "fedramp") |
+| `DATADOG_TAGS`        | object | {}      | Custom tags to add to all metrics                                       |

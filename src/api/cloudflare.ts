@@ -1,9 +1,5 @@
 import { z } from "zod/v4";
-import {
-	CloudchamberMetricsResponse,
-	Container,
-	type MetricsGroup,
-} from "../types";
+import { CloudchamberMetricsResponse, Container, type MetricsGroup } from "../types";
 
 export interface CloudflareApiConfig {
 	accountId: string;
@@ -92,9 +88,7 @@ export class CloudflareApi {
 		});
 
 		if (!response.ok) {
-			throw new Error(
-				`Failed to list containers: ${response.status} ${response.statusText}`,
-			);
+			throw new Error(`Failed to list containers: ${response.status} ${response.statusText}`);
 		}
 
 		const data = ContainersListResponseSchema.parse(await response.json());
@@ -137,9 +131,7 @@ export class CloudflareApi {
 		});
 
 		if (!response.ok) {
-			throw new Error(
-				`GraphQL request failed: ${response.status} ${response.statusText}`,
-			);
+			throw new Error(`GraphQL request failed: ${response.status} ${response.statusText}`);
 		}
 
 		const data = CloudchamberMetricsResponse.parse(await response.json());
@@ -162,8 +154,7 @@ export class CloudflareApi {
 			);
 		}
 
-		const groups =
-			data.data.viewer?.accounts?.[0]?.cloudchamberMetricsAdaptiveGroups ?? [];
+		const groups = data.data.viewer?.accounts?.[0]?.cloudchamberMetricsAdaptiveGroups ?? [];
 
 		console.log("Fetched container metrics", {
 			applicationId,

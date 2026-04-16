@@ -1,8 +1,4 @@
-import type {
-	CloudchamberMetricsResponse,
-	Container,
-	MetricsGroup,
-} from "../../src/types";
+import type { CloudchamberMetricsResponse, Container, MetricsGroup } from "../../src/types";
 
 /**
  * Mock container data
@@ -142,9 +138,7 @@ export const mockContainersListResponse = {
 /**
  * Create a mock metrics group with custom values
  */
-export function createMockMetricsGroup(
-	overrides: Partial<MetricsGroup> = {},
-): MetricsGroup {
+export function createMockMetricsGroup(overrides: Partial<MetricsGroup> = {}): MetricsGroup {
 	return {
 		max: {
 			cpuLoad: 0.75,

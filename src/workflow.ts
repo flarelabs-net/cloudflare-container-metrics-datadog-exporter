@@ -30,10 +30,7 @@ export function getMetricsTimeWindow(scheduledTimeMs: number): {
 	return { start, end };
 }
 
-export class MetricsExporterWorkflow extends WorkflowEntrypoint<
-	Env,
-	MetricsWorkflowParams
-> {
+export class MetricsExporterWorkflow extends WorkflowEntrypoint<Env, MetricsWorkflowParams> {
 	async run(event: WorkflowEvent<MetricsWorkflowParams>, step: WorkflowStep) {
 		const batchSize = this.env.BATCH_SIZE ?? 5000;
 		const retryLimit = this.env.RETRY_LIMIT ?? 3;
@@ -47,8 +44,7 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<
 			},
 		};
 
-		const scheduledTime =
-			event.payload?.scheduledTime ?? event.timestamp.getTime();
+		const scheduledTime = event.payload?.scheduledTime ?? event.timestamp.getTime();
 
 		// Create a fetcher that proxies requests through a Durable Object in a specific jurisdiction
 		// This ensures GraphQL queries run close to the data source
@@ -68,10 +64,7 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<
 			fetcher,
 		);
 
-		const datadog = createDatadogApi(
-			this.env.DATADOG_API_KEY,
-			this.env.DATADOG_SITE,
-		);
+		const datadog = createDatadogApi(this.env.DATADOG_API_KEY, this.env.DATADOG_SITE);
 
 		const { start, end } = getMetricsTimeWindow(scheduledTime);
 		console.log("Workflow started", {
@@ -81,28 +74,24 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<
 			end: end.toISOString(),
 		});
 
-		const containers = await step.do(
-			"fetch containers",
-			retryStepConfig,
-			async () => {
-				const result = await cloudflare.listContainers();
-				console.log("Fetched containers", { count: result.length });
+		const containers = await step.do("fetch containers", retryStepConfig, async () => {
+			const result = await cloudflare.listContainers();
+			console.log("Fetched containers", { count: result.length });
 
-				const healthMetrics = formatHealthMetrics(
-					this.env.CLOUDFLARE_ACCOUNT_ID,
-					result,
-					undefined,
-					this.env.DATADOG_TAGS,
-				);
-				await datadog.sendMetrics(healthMetrics);
+			const healthMetrics = formatHealthMetrics(
+				this.env.CLOUDFLARE_ACCOUNT_ID,
+				result,
+				undefined,
+				this.env.DATADOG_TAGS,
+			);
+			await datadog.sendMetrics(healthMetrics);
 
-				return result.map((c) => ({
-					id: c.id,
-					name: c.name,
-					version: c.version,
-				}));
-			},
-		);
+			return result.map((c) => ({
+				id: c.id,
+				name: c.name,
+				version: c.version,
+			}));
+		});
 
 		let totalMetrics = 0;
 
@@ -117,11 +106,7 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<
 					},
 				},
 				async () => {
-					const metricsGroups = await cloudflare.getContainerMetrics(
-						container.id,
-						start,
-						end,
-					);
+					const metricsGroups = await cloudflare.getContainerMetrics(container.id, start, end);
 
 					const metrics = formatMetricsForContainer(
 						this.env.CLOUDFLARE_ACCOUNT_ID,

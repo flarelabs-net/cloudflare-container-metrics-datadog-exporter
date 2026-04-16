@@ -37,11 +37,7 @@ describe("CloudflareApi", () => {
 				),
 			);
 
-			const api = createCloudflareApi(
-				"test-account",
-				"test-token",
-				customFetcher,
-			);
+			const api = createCloudflareApi("test-account", "test-token", customFetcher);
 			await api.listContainers();
 
 			expect(customFetcher).toHaveBeenCalledTimes(1);
@@ -70,11 +66,7 @@ describe("CloudflareApi", () => {
 				),
 			);
 
-			const api = createCloudflareApi(
-				"test-account",
-				"test-token",
-				customFetcher,
-			);
+			const api = createCloudflareApi("test-account", "test-token", customFetcher);
 
 			await api.getContainerMetrics(
 				"app-id",

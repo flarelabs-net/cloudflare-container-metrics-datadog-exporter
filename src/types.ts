@@ -75,9 +75,7 @@ const MetricsAccountSchema = z.object({
 });
 
 /** GraphQL metrics response */
-export type CloudchamberMetricsResponse = z.infer<
-	typeof CloudchamberMetricsResponse
->;
+export type CloudchamberMetricsResponse = z.infer<typeof CloudchamberMetricsResponse>;
 export const CloudchamberMetricsResponse = z.object({
 	data: z
 		.object({

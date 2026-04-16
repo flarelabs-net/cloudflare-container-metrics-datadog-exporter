@@ -1,7 +1,5 @@
 {
 	"$schema": "./node_modules/oxfmt/configuration_schema.json",
-	"ignorePatterns": [
-	  ".vscode/*.json"
-	],
+	"ignorePatterns": [".vscode/*.json", "node_modules/**"],
 	"useTabs": true
 }

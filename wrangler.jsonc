@@ -6,31 +6,31 @@
 	"workers_dev": false,
 	"preview_urls": false,
 	"observability": {
-		"enabled": true
+		"enabled": true,
 	},
 	"triggers": {
-		"crons": ["* * * * *"]
+		"crons": ["* * * * *"],
 	},
 	"workflows": [
 		{
 			"binding": "METRICS_WORKFLOW",
 			"class_name": "MetricsExporterWorkflow",
-			"name": "metrics-exporter-workflow"
-		}
+			"name": "metrics-exporter-workflow",
+		},
 	],
 	"durable_objects": {
 		"bindings": [
 			{
 				"name": "REQUEST_PROXY",
-				"class_name": "RequestProxy"
-			}
-		]
+				"class_name": "RequestProxy",
+			},
+		],
 	},
 	"migrations": [
 		{
 			"tag": "v1",
-			"new_sqlite_classes": ["RequestProxy"]
-		}
+			"new_sqlite_classes": ["RequestProxy"],
+		},
 	],
 	"vars": {
 		"BATCH_SIZE": 5000,
@@ -38,7 +38,7 @@
 		"RETRY_DELAY_SECONDS": 1,
 		"JURISDICTION": "",
 		"DATADOG_TAGS": {
-			"env": "sandbox"
-		}
-	}
+			"env": "sandbox",
+		},
+	},
 }

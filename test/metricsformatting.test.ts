@@ -1,10 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { formatHealthMetrics, formatMetricsForContainer } from "../src/metrics";
-import {
-	createMockMetricsGroup,
-	mockContainers,
-	mockMetricsGroups,
-} from "./mocks";
+import { createMockMetricsGroup, mockContainers, mockMetricsGroups } from "./mocks";
 
 const TEST_ACCOUNT_ID = "test-account-123";
 const TEST_TIMESTAMP = 1733414400; // 2024-12-05T16:00:00Z
@@ -48,16 +44,10 @@ describe("formatMetricsForContainer", () => {
 			},
 		});
 
-		const metrics = formatMetricsForContainer(
-			TEST_ACCOUNT_ID,
-			container,
-			[group],
-			TEST_TIMESTAMP,
-		);
+		const metrics = formatMetricsForContainer(TEST_ACCOUNT_ID, container, [group], TEST_TIMESTAMP);
 
 		const cpuMetric = metrics.find(
-			(m) =>
-				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
+			(m) => m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
 		);
 
 		expect(cpuMetric).toBeDefined();
@@ -82,22 +72,14 @@ describe("formatMetricsForContainer", () => {
 			},
 		});
 
-		const metrics = formatMetricsForContainer(
-			TEST_ACCOUNT_ID,
-			container,
-			[group],
-			TEST_TIMESTAMP,
-		);
+		const metrics = formatMetricsForContainer(TEST_ACCOUNT_ID, container, [group], TEST_TIMESTAMP);
 
 		const cpuMetric = metrics.find(
-			(m) =>
-				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
+			(m) => m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
 		);
 
 		expect(cpuMetric).toBeDefined();
-		expect(
-			cpuMetric?.tags.some((t) => t.startsWith("durable_object_id:")),
-		).toBe(false);
+		expect(cpuMetric?.tags.some((t) => t.startsWith("durable_object_id:"))).toBe(false);
 	});
 
 	it("includes custom tags when provided", () => {
@@ -112,8 +94,7 @@ describe("formatMetricsForContainer", () => {
 		);
 
 		const cpuMetric = metrics.find(
-			(m) =>
-				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
+			(m) => m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
 		);
 
 		expect(cpuMetric).toBeDefined();
@@ -137,8 +118,7 @@ describe("formatMetricsForContainer", () => {
 
 		expect(metrics).toHaveLength(14);
 		const cpuMetric = metrics.find(
-			(m) =>
-				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
+			(m) => m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
 		);
 		expect(cpuMetric?.tags).not.toContain("count:123");
 		expect(cpuMetric?.tags).not.toContain("env:prod");
@@ -164,8 +144,7 @@ describe("formatMetricsForContainer", () => {
 
 		expect(metrics).toHaveLength(14);
 		const cpuMetric = metrics.find(
-			(m) =>
-				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
+			(m) => m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
 		);
 		expect(cpuMetric).toBeDefined();
 		expect(cpuMetric?.tags).toContain(`account_id:${TEST_ACCOUNT_ID}`);
@@ -184,8 +163,7 @@ describe("formatMetricsForContainer", () => {
 
 		expect(metrics).toHaveLength(14);
 		const cpuMetric = metrics.find(
-			(m) =>
-				m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
+			(m) => m.metric === "cloudflare.containers.cpu" && m.tags.includes("stat:p50"),
 		);
 		expect(cpuMetric).toBeDefined();
 		expect(cpuMetric?.tags).toContain(`account_id:${TEST_ACCOUNT_ID}`);
@@ -193,23 +171,14 @@ describe("formatMetricsForContainer", () => {
 
 	it("returns empty array for no metrics groups", () => {
 		const container = { id: "app-123", name: "my-app", version: 1 };
-		const metrics = formatMetricsForContainer(
-			TEST_ACCOUNT_ID,
-			container,
-			[],
-			TEST_TIMESTAMP,
-		);
+		const metrics = formatMetricsForContainer(TEST_ACCOUNT_ID, container, [], TEST_TIMESTAMP);
 		expect(metrics).toHaveLength(0);
 	});
 });
 
 describe("formatHealthMetrics", () => {
 	it("aggregates health across all containers", () => {
-		const metrics = formatHealthMetrics(
-			TEST_ACCOUNT_ID,
-			mockContainers,
-			TEST_TIMESTAMP,
-		);
+		const metrics = formatHealthMetrics(TEST_ACCOUNT_ID, mockContainers, TEST_TIMESTAMP);
 
 		// 2 containers × 8 per-app metrics + 8 global totals = 24 metrics
 		expect(metrics).toHaveLength(24);
@@ -217,33 +186,31 @@ describe("formatHealthMetrics", () => {
 		// Find global metrics (only account_id tag, no application tags)
 		const findGlobalMetric = (name: string) =>
 			metrics.find(
-				(m) =>
-					m.metric === name &&
-					m.tags.length === 1 &&
-					m.tags[0].startsWith("account_id:"),
+				(m) => m.metric === name && m.tags.length === 1 && m.tags[0].startsWith("account_id:"),
 			);
 
 		// mockContainers[0]: active=5, assigned=5, healthy=5, stopped=0, failed=0, max=10
 		// mockContainers[1]: active=3, assigned=2, healthy=2, stopped=0, failed=1, max=5
-		expect(
-			findGlobalMetric("cloudflare.containers.instances.total.active")
-				?.points[0],
-		).toEqual([TEST_TIMESTAMP, 8]);
-		expect(
-			findGlobalMetric("cloudflare.containers.instances.total.assigned")
-				?.points[0],
-		).toEqual([TEST_TIMESTAMP, 7]);
-		expect(
-			findGlobalMetric("cloudflare.containers.instances.total.healthy")
-				?.points[0],
-		).toEqual([TEST_TIMESTAMP, 7]);
-		expect(
-			findGlobalMetric("cloudflare.containers.instances.total.failed")
-				?.points[0],
-		).toEqual([TEST_TIMESTAMP, 1]);
-		expect(
-			findGlobalMetric("cloudflare.containers.instances.total.max")?.points[0],
-		).toEqual([TEST_TIMESTAMP, 15]);
+		expect(findGlobalMetric("cloudflare.containers.instances.total.active")?.points[0]).toEqual([
+			TEST_TIMESTAMP,
+			8,
+		]);
+		expect(findGlobalMetric("cloudflare.containers.instances.total.assigned")?.points[0]).toEqual([
+			TEST_TIMESTAMP,
+			7,
+		]);
+		expect(findGlobalMetric("cloudflare.containers.instances.total.healthy")?.points[0]).toEqual([
+			TEST_TIMESTAMP,
+			7,
+		]);
+		expect(findGlobalMetric("cloudflare.containers.instances.total.failed")?.points[0]).toEqual([
+			TEST_TIMESTAMP,
+			1,
+		]);
+		expect(findGlobalMetric("cloudflare.containers.instances.total.max")?.points[0]).toEqual([
+			TEST_TIMESTAMP,
+			15,
+		]);
 	});
 
 	it("includes custom tags when provided", () => {
@@ -293,11 +260,7 @@ describe("formatHealthMetrics", () => {
 	});
 
 	it("includes account_id tag", () => {
-		const metrics = formatHealthMetrics(
-			TEST_ACCOUNT_ID,
-			mockContainers,
-			TEST_TIMESTAMP,
-		);
+		const metrics = formatHealthMetrics(TEST_ACCOUNT_ID, mockContainers, TEST_TIMESTAMP);
 
 		for (const metric of metrics) {
 			expect(metric.tags).toContain(`account_id:${TEST_ACCOUNT_ID}`);
@@ -305,11 +268,7 @@ describe("formatHealthMetrics", () => {
 	});
 
 	it("all health metrics are gauges", () => {
-		const metrics = formatHealthMetrics(
-			TEST_ACCOUNT_ID,
-			mockContainers,
-			TEST_TIMESTAMP,
-		);
+		const metrics = formatHealthMetrics(TEST_ACCOUNT_ID, mockContainers, TEST_TIMESTAMP);
 
 		for (const metric of metrics) {
 			expect(metric.type).toBe("gauge");
