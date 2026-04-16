@@ -29,7 +29,7 @@ const CONTAINERS_METRICS_QUERY = `
 query GetCloudchamberMetrics($accountTag: string!, $datetimeStart: Time, $datetimeEnd: Time, $applicationId: string!) {
   viewer {
     accounts(filter: {accountTag: $accountTag}) {
-      cloudchamberMetricsAdaptiveGroups(limit: 10000, filter: {applicationId: $applicationId, datetimeMinute_geq: $datetimeStart, datetimeMinute_leq: $datetimeEnd}) {
+      cloudchamberMetricsAdaptiveGroups(limit: 10000, filter: {applicationId: $applicationId, datetimeMinute_geq: $datetimeStart, datetimeMinute_lt: $datetimeEnd}) {
         max {
           memory
           cpuLoad

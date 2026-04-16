@@ -36,6 +36,7 @@
 		"BATCH_SIZE": 5000,
 		"RETRY_LIMIT": 3,
 		"RETRY_DELAY_SECONDS": 1,
+		"METRICS_WINDOW_MINUTES": 1,
 		"JURISDICTION": "",
 		"DATADOG_TAGS": {
 			"env": "sandbox"

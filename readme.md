@@ -36,12 +36,15 @@ To run GraphQL queries from a specific jurisdiction (closer to the data source),
   "BATCH_SIZE": 5000,
   "RETRY_LIMIT": 3,
   "RETRY_DELAY_SECONDS": 1,
+  "METRICS_WINDOW_MINUTES": 1,
   "JURISDICTION": "eu", // e.g., "eu", "fedramp"
   "DATADOG_TAGS": {}
 }
 ```
 
 This uses a Durable Object to proxy requests from the specified jurisdiction.
+
+Set `METRICS_WINDOW_MINUTES` to match your cron cadence. For example, if the worker runs every 5 minutes, set `METRICS_WINDOW_MINUTES` to `5` so each run exports the previous 5 complete minutes.
 
 #### Optional: Custom Datadog Tags
 
@@ -52,6 +55,7 @@ Add custom tags to all metrics by setting the `DATADOG_TAGS` variable in `wrangl
   "BATCH_SIZE": 5000,
   "RETRY_LIMIT": 3,
   "RETRY_DELAY_SECONDS": 1,
+  "METRICS_WINDOW_MINUTES": 1,
   "JURISDICTION": "eu",
   "DATADOG_TAGS": {
     "env": "production",
@@ -148,7 +152,7 @@ See [Datadog's documentation](https://docs.datadoghq.com/dashboards/configure/#c
 
 ## Workflow Behavior
 
-The exporter runs as a Cloudflare Workflow triggered every minute via cron. Each workflow step uses configurable retry settings:
+The exporter runs as a Cloudflare Workflow triggered on the configured cron schedule. Each workflow step uses configurable retry settings:
 
 - **Retries**: Configurable via `RETRY_LIMIT` (default: 3 attempts)
 - **Delay**: Configurable via `RETRY_DELAY_SECONDS` (default: 1 second initial delay)
@@ -163,5 +167,6 @@ Steps will automatically retry on transient failures (API errors, network issues
 | `BATCH_SIZE` | number | 5000 | Maximum metrics per Datadog API request |
 | `RETRY_LIMIT` | number | 3 | Number of retry attempts for failed workflow steps |
 | `RETRY_DELAY_SECONDS` | number | 1 | Initial delay in seconds before retry (exponential backoff) |
+| `METRICS_WINDOW_MINUTES` | number | 1 | Number of complete minutes to export per run; set this to match your cron schedule |
 | `JURISDICTION` | string | "" | Durable Object jurisdiction for GraphQL queries (e.g., "eu", "fedramp") |
 | `DATADOG_TAGS` | object | {} | Custom tags to add to all metrics |

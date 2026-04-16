@@ -14,18 +14,40 @@ interface MetricsWorkflowParams {
 	scheduledTime?: number;
 }
 
+const DEFAULT_METRICS_WINDOW_MINUTES = 1;
+
+export function getMetricsWindowMinutes(
+	value: number | string | undefined,
+): number {
+	if (value === undefined || value === "") {
+		return DEFAULT_METRICS_WINDOW_MINUTES;
+	}
+
+	const parsed = Number(value);
+	if (!Number.isInteger(parsed) || parsed <= 0) {
+		return DEFAULT_METRICS_WINDOW_MINUTES;
+	}
+
+	return parsed;
+}
+
 /**
  * Calculate the metrics time window.
- * With ~40-50s delay in Cloudflare metrics, we fetch the previous complete minute.
- * e.g., if cron runs at 10:43:xx, we fetch metrics from 10:41:00 to 10:42:00
+ * With ~40-50s delay in Cloudflare metrics, we fetch the previous complete window.
+ * The returned range is half-open: [start, end).
+ * e.g., if cron runs every 5 minutes at 10:45:xx, we fetch metrics from
+ * 10:39:00 up to but not including 10:44:00.
  */
-export function getMetricsTimeWindow(scheduledTimeMs: number): {
+export function getMetricsTimeWindow(
+	scheduledTimeMs: number,
+	windowMinutes = DEFAULT_METRICS_WINDOW_MINUTES,
+): {
 	start: Date;
 	end: Date;
 } {
 	const scheduledMinute = scheduledTimeMs - (scheduledTimeMs % 60_000);
 	const end = new Date(scheduledMinute - 60_000);
-	const start = new Date(end.getTime() - 60_000);
+	const start = new Date(end.getTime() - windowMinutes * 60_000);
 
 	return { start, end };
 }
@@ -49,6 +71,9 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<
 
 		const scheduledTime =
 			event.payload?.scheduledTime ?? event.timestamp.getTime();
+		const windowMinutes = getMetricsWindowMinutes(
+			this.env.METRICS_WINDOW_MINUTES,
+		);
 
 		// Create a fetcher that proxies requests through a Durable Object in a specific jurisdiction
 		// This ensures GraphQL queries run close to the data source
@@ -73,10 +98,11 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<
 			this.env.DATADOG_SITE,
 		);
 
-		const { start, end } = getMetricsTimeWindow(scheduledTime);
+		const { start, end } = getMetricsTimeWindow(scheduledTime, windowMinutes);
 		console.log("Workflow started", {
 			instanceId: event.instanceId,
 			scheduledTime: new Date(scheduledTime).toISOString(),
+			windowMinutes,
 			start: start.toISOString(),
 			end: end.toISOString(),
 		});

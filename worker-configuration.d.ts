@@ -10,6 +10,7 @@ declare namespace Cloudflare {
 		BATCH_SIZE: number;
 		RETRY_LIMIT: number;
 		RETRY_DELAY_SECONDS: number;
+		METRICS_WINDOW_MINUTES: number | string;
 		JURISDICTION: string;
 		DATADOG_TAGS: object;
 		CLOUDFLARE_ACCOUNT_ID: string;

@@ -91,6 +91,11 @@ describe("CloudflareApi", () => {
 					}),
 				}),
 			);
+
+			const requestInit = customFetcher.mock.calls[0]?.[1];
+			const body = JSON.parse(String(requestInit?.body));
+
+			expect(body.query).toContain("datetimeMinute_lt: $datetimeEnd");
 		});
 	});
 });
