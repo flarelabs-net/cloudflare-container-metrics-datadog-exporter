@@ -65,7 +65,7 @@ describe("formatMetricsForContainer", () => {
 		expect(cpuMetric?.tags).toContain("application_id:app-test");
 		expect(cpuMetric?.tags).toContain("application_name:my-app");
 		expect(cpuMetric?.tags).toContain("version:1");
-		expect(cpuMetric?.tags).toContain("instance_id:instance-test");
+		expect(cpuMetric?.tags).toContain("instance_id:do-test-456");
 		expect(cpuMetric?.tags).toContain("placement_id:placement-test");
 		expect(cpuMetric?.tags).toContain("durable_object_id:do-test-456");
 	});
@@ -98,6 +98,9 @@ describe("formatMetricsForContainer", () => {
 		expect(
 			cpuMetric?.tags.some((t) => t.startsWith("durable_object_id:")),
 		).toBe(false);
+
+		// instance_id falls back to deployment_id when there is no DO
+		expect(cpuMetric?.tags).toContain("instance_id:instance-test");
 	});
 
 	it("includes custom tags when provided", () => {
