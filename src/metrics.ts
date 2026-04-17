@@ -35,10 +35,12 @@ export function formatMetricsForContainer(
 	datadogTags?: unknown,
 ): DatadogMetric[] {
 	const customTags = parseCustomTags(datadogTags);
-	const ts = timestamp ?? Math.floor(Date.now() / 1000);
 	const metrics: DatadogMetric[] = [];
 
 	for (const group of metricsGroups) {
+		const ts =
+			timestamp ??
+			Math.floor(Date.parse(group.dimensions.datetimeMinute) / 1000);
 		const baseTags = [
 			`account_id:${accountId}`,
 			`application_id:${group.dimensions.applicationId}`,
@@ -58,26 +60,32 @@ export function formatMetricsForContainer(
 			{
 				metric: "cloudflare.containers.cpu",
 				type: "gauge",
-				points: [[ts, group.quantiles.cpuLoadP50]],
+				points: [[ts, group.quantiles.cpuUtilizationP50]],
 				tags: [...baseTags, "stat:p50"],
 			},
 			{
 				metric: "cloudflare.containers.cpu",
 				type: "gauge",
-				points: [[ts, group.quantiles.cpuLoadP90]],
+				points: [[ts, group.quantiles.cpuUtilizationP90]],
 				tags: [...baseTags, "stat:p90"],
 			},
 			{
 				metric: "cloudflare.containers.cpu",
 				type: "gauge",
-				points: [[ts, group.quantiles.cpuLoadP99]],
+				points: [[ts, group.quantiles.cpuUtilizationP99]],
 				tags: [...baseTags, "stat:p99"],
 			},
 			{
 				metric: "cloudflare.containers.cpu",
 				type: "gauge",
-				points: [[ts, group.max.cpuLoad]],
+				points: [[ts, group.max.cpuUtilization]],
 				tags: [...baseTags, "stat:max"],
+			},
+			{
+				metric: "cloudflare.containers.cpu.time",
+				type: "count",
+				points: [[ts, group.sum.cpuTimeSec]],
+				tags: baseTags,
 			},
 		);
 
@@ -135,6 +143,12 @@ export function formatMetricsForContainer(
 				points: [[ts, group.max.diskUsage]],
 				tags: [...baseTags, "stat:max"],
 			},
+			{
+				metric: "cloudflare.containers.disk.available",
+				type: "gauge",
+				points: [[ts, group.max.diskAvailable]],
+				tags: baseTags,
+			},
 		);
 
 		// Bandwidth metrics
@@ -152,6 +166,16 @@ export function formatMetricsForContainer(
 				tags: baseTags,
 			},
 		);
+
+		// Container uptime metrics
+		if (group.max.containerUptime > 0) {
+			metrics.push({
+				metric: "cloudflare.containers.uptime",
+				type: "gauge",
+				points: [[ts, group.max.containerUptime]],
+				tags: baseTags,
+			});
+		}
 	}
 
 	return metrics;

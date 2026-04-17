@@ -123,7 +123,7 @@
 					{
 						"id": 21,
 						"definition": {
-							"title": "CPU Load by Application (P50, vCPU)",
+							"title": "CPU Utilization by Application (P50, %)",
 							"title_size": "16",
 							"title_align": "left",
 							"show_legend": true,
@@ -132,7 +132,7 @@
 							"type": "timeseries",
 							"requests": [
 								{
-									"formulas": [{ "formula": "query1" }],
+									"formulas": [{ "formula": "query1 * 100" }],
 									"queries": [
 										{
 											"name": "query1",
@@ -155,7 +155,7 @@
 					{
 						"id": 22,
 						"definition": {
-							"title": "CPU Load P90 by Application (vCPU)",
+							"title": "CPU Utilization by Application (P90, %)",
 							"title_size": "16",
 							"title_align": "left",
 							"show_legend": true,
@@ -164,7 +164,7 @@
 							"type": "timeseries",
 							"requests": [
 								{
-									"formulas": [{ "formula": "query1" }],
+									"formulas": [{ "formula": "query1 * 100" }],
 									"queries": [
 										{
 											"name": "query1",
@@ -187,7 +187,7 @@
 					{
 						"id": 23,
 						"definition": {
-							"title": "CPU Load - Top 10 Applications (vCPU)",
+							"title": "CPU Utilization - Top 10 Applications (%)",
 							"title_size": "16",
 							"title_align": "left",
 							"type": "toplist",
@@ -195,7 +195,7 @@
 								{
 									"formulas": [
 										{
-											"formula": "query1",
+											"formula": "query1 * 100",
 											"limit": { "count": 10, "order": "desc" }
 										}
 									],
@@ -216,13 +216,13 @@
 					{
 						"id": 24,
 						"definition": {
-							"title": "CPU Load Heatmap by Placement (vCPU)",
+							"title": "CPU Utilization Heatmap by Placement (%)",
 							"title_size": "16",
 							"title_align": "left",
 							"type": "heatmap",
 							"requests": [
 								{
-									"formulas": [{ "formula": "query1" }],
+									"formulas": [{ "formula": "query1 * 100" }],
 									"queries": [
 										{
 											"name": "query1",
@@ -260,7 +260,7 @@
 							"type": "timeseries",
 							"requests": [
 								{
-									"formulas": [{ "formula": "query1" }],
+									"formulas": [{ "formula": "query1 / 1048576" }],
 									"queries": [
 										{
 											"name": "query1",
@@ -283,7 +283,7 @@
 					{
 						"id": 32,
 						"definition": {
-							"title": "Memory Usage P90 by Application (MiB)",
+							"title": "Memory Usage by Application (P90, MiB)",
 							"title_size": "16",
 							"title_align": "left",
 							"show_legend": true,
@@ -292,7 +292,7 @@
 							"type": "timeseries",
 							"requests": [
 								{
-									"formulas": [{ "formula": "query1" }],
+									"formulas": [{ "formula": "query1 / 1048576" }],
 									"queries": [
 										{
 											"name": "query1",
@@ -323,7 +323,7 @@
 								{
 									"formulas": [
 										{
-											"formula": "query1",
+											"formula": "query1 / 1048576",
 											"limit": { "count": 10, "order": "desc" }
 										}
 									],
@@ -350,7 +350,7 @@
 							"type": "heatmap",
 							"requests": [
 								{
-									"formulas": [{ "formula": "query1" }],
+									"formulas": [{ "formula": "query1 / 1048576" }],
 									"queries": [
 										{
 											"name": "query1",
@@ -388,7 +388,7 @@
 							"type": "timeseries",
 							"requests": [
 								{
-									"formulas": [{ "formula": "query1" }],
+									"formulas": [{ "formula": "query1 / 1000000" }],
 									"queries": [
 										{
 											"name": "query1",
@@ -419,7 +419,7 @@
 								{
 									"formulas": [
 										{
-											"formula": "query1",
+											"formula": "query1 / 1000000",
 											"limit": { "count": 10, "order": "desc" }
 										}
 									],
@@ -451,7 +451,7 @@
 					{
 						"id": 51,
 						"definition": {
-							"title": "Network Ingress by Application (MB/s)",
+							"title": "Network Ingress by Application (MiB/s)",
 							"title_size": "16",
 							"title_align": "left",
 							"show_legend": true,
@@ -460,7 +460,7 @@
 							"type": "timeseries",
 							"requests": [
 								{
-									"formulas": [{ "formula": "query1 / 1000000" }],
+									"formulas": [{ "formula": "query1 / 1048576" }],
 									"queries": [
 										{
 											"name": "query1",
@@ -483,7 +483,7 @@
 					{
 						"id": 52,
 						"definition": {
-							"title": "Network Egress by Application (MB/s)",
+							"title": "Network Egress by Application (MiB/s)",
 							"title_size": "16",
 							"title_align": "left",
 							"show_legend": true,
@@ -492,7 +492,7 @@
 							"type": "timeseries",
 							"requests": [
 								{
-									"formulas": [{ "formula": "query1 / 1000000" }],
+									"formulas": [{ "formula": "query1 / 1048576" }],
 									"queries": [
 										{
 											"name": "query1",
@@ -515,7 +515,7 @@
 					{
 						"id": 53,
 						"definition": {
-							"title": "Total Network Traffic (MB/s)",
+							"title": "Total Network Traffic (MiB/s)",
 							"title_size": "16",
 							"title_align": "left",
 							"show_legend": true,
@@ -525,8 +525,8 @@
 							"requests": [
 								{
 									"formulas": [
-										{ "alias": "Ingress", "formula": "query1 / 1000000" },
-										{ "alias": "Egress", "formula": "query2 / 1000000" }
+										{ "alias": "Ingress", "formula": "query1 / 1048576" },
+										{ "alias": "Egress", "formula": "query2 / 1048576" }
 									],
 									"queries": [
 										{
@@ -557,6 +557,38 @@
 			"layout": { "x": 0, "y": 24, "width": 12, "height": 7 }
 		},
 		{
+			"id": 70,
+			"definition": {
+				"title": "Average Container Uptime by Application (sec)",
+				"title_size": "16",
+				"title_align": "left",
+				"show_legend": true,
+				"legend_layout": "auto",
+				"legend_columns": ["avg", "min", "max", "value"],
+				"type": "timeseries",
+				"requests": [
+					{
+						"formulas": [{ "formula": "query1 / 1000" }],
+						"queries": [
+							{
+								"name": "query1",
+								"data_source": "metrics",
+								"query": "avg:cloudflare.containers.uptime{$application_name} by {instance_id}"
+							}
+						],
+						"response_format": "timeseries",
+						"style": {
+							"palette": "blue",
+							"line_type": "solid",
+							"line_width": "normal"
+						},
+						"display_type": "line"
+					}
+				]
+			},
+			"layout": { "x": 0, "y": 31, "width": 12, "height": 4 }
+		},
+		{
 			"id": 60,
 			"definition": {
 				"title": "Application Resource Table",
@@ -567,14 +599,14 @@
 					{
 						"formulas": [
 							{
-								"alias": "CPU P50 (vCPU)",
-								"formula": "query1",
+								"alias": "CPU P50 (%)",
+								"formula": "query1 * 100",
 								"limit": { "count": 50, "order": "desc" }
 							},
-							{ "alias": "CPU P90 (vCPU)", "formula": "query2" },
-							{ "alias": "Memory P50 (MiB)", "formula": "query3" },
-							{ "alias": "Memory P90 (MiB)", "formula": "query4" },
-							{ "alias": "Disk P90 (MB)", "formula": "query5" }
+							{ "alias": "CPU P90 (%)", "formula": "query2 * 100" },
+							{ "alias": "Memory P50 (MiB)", "formula": "query3 / 1048576" },
+							{ "alias": "Memory P90 (MiB)", "formula": "query4 / 1048576" },
+							{ "alias": "Disk P90 (MB)", "formula": "query5 / 1000000" }
 						],
 						"queries": [
 							{
@@ -619,7 +651,7 @@
 					}
 				]
 			},
-			"layout": { "x": 0, "y": 31, "width": 12, "height": 4 }
+			"layout": { "x": 0, "y": 35, "width": 12, "height": 4 }
 		}
 	],
 	"template_variables": [
@@ -638,6 +670,12 @@
 		{
 			"name": "placement_id",
 			"prefix": "placement_id",
+			"available_values": [],
+			"default": "*"
+		},
+		{
+			"name": "deployment_id",
+			"prefix": "deployment_id",
 			"available_values": [],
 			"default": "*"
 		},

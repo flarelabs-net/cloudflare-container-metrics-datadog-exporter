@@ -122,18 +122,21 @@ Use `instances.total.max - instances.total.healthy` to calculate available capac
 
 | Metric | Type | Unit | Description |
 |--------|------|------|-------------|
-| `cpu` | gauge | vCPU | CPU load |
-| `memory` | gauge | MiB | Memory usage |
-| `disk` | gauge | MB | Disk usage |
-| `bandwidth.rx` | count | bytes | Bytes received |
-| `bandwidth.tx` | count | bytes | Bytes transmitted |
+| `cpu` | gauge | ratio | CPU utilization with `stat=max|p50|p90|p99` |
+| `cpu.time` | count | seconds | CPU time consumed over the interval |
+| `memory` | gauge | bytes | Memory usage with `stat=max|p50|p90|p99` |
+| `disk` | gauge | bytes | Disk usage with `stat=max|p50|p90|p99` |
+| `disk.available` | gauge | bytes | Available disk capacity |
+| `bandwidth.rx` | count | bytes | Bytes received over the interval |
+| `bandwidth.tx` | count | bytes | Bytes transmitted over the interval |
+| `uptime` | gauge | ms | Container uptime |
 
 **Tags:** `account_id`, `application_id`, `application_name`, `version`, `instance_id`, `placement_id`, `stat`
 
 - `version` - The container application version number
-- `instance_id` - The instance identifier (maps to Cloudflare's deploymentId)
+- `instance_id` - The instance identifier (same as the ID seen in the Cloudflare dashboard)
 - `placement_id` - The placement identifier (specific realization of an instance, useful for tracking restarts/churn)
-- `stat` - The aggregation type: `p50`, `p90`, `p99`, `max` (bandwidth metrics don't have a stat tag)
+- `stat` - Present on aggregated gauge families and can be `max`, `p50`, `p90`, or `p99`
 
 ## Datadog Dashboard
 

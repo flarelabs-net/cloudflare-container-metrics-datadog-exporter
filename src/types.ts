@@ -31,9 +31,11 @@ export const Container = z.looseObject({
 // GraphQL Metrics Response Schemas
 
 const MetricsMaxSchema = z.object({
-	cpuLoad: z.number(),
+	cpuUtilization: z.number(),
 	memory: z.number(),
 	diskUsage: z.number(),
+	diskAvailable: z.number(),
+	containerUptime: z.number(),
 });
 
 const MetricsDimensionsSchema = z.object({
@@ -51,14 +53,15 @@ const MetricsQuantilesSchema = z.object({
 	diskUsageP50: z.number(),
 	diskUsageP90: z.number(),
 	diskUsageP99: z.number(),
-	cpuLoadP50: z.number(),
-	cpuLoadP90: z.number(),
-	cpuLoadP99: z.number(),
+	cpuUtilizationP50: z.number(),
+	cpuUtilizationP90: z.number(),
+	cpuUtilizationP99: z.number(),
 });
 
 const MetricsSumSchema = z.object({
 	rxBytes: z.number(),
 	txBytes: z.number(),
+	cpuTimeSec: z.number(),
 });
 
 /** Metrics group from GraphQL API */
@@ -71,14 +74,14 @@ export const MetricsGroup = z.object({
 });
 
 const MetricsAccountSchema = z.object({
-	cloudchamberMetricsAdaptiveGroups: z.array(MetricsGroup),
+	containersMetricsAdaptiveGroups: z.array(MetricsGroup),
 });
 
 /** GraphQL metrics response */
-export type CloudchamberMetricsResponse = z.infer<
-	typeof CloudchamberMetricsResponse
+export type ContainersMetricsResponse = z.infer<
+	typeof ContainersMetricsResponse
 >;
-export const CloudchamberMetricsResponse = z.object({
+export const ContainersMetricsResponse = z.object({
 	data: z
 		.object({
 			viewer: z.object({
