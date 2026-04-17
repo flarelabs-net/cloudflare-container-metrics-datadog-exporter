@@ -35,10 +35,12 @@ export function formatMetricsForContainer(
 	datadogTags?: unknown,
 ): DatadogMetric[] {
 	const customTags = parseCustomTags(datadogTags);
-	const ts = timestamp ?? Math.floor(Date.now() / 1000);
 	const metrics: DatadogMetric[] = [];
 
 	for (const group of metricsGroups) {
+		const ts =
+			timestamp ??
+			Math.floor(Date.parse(group.dimensions.datetimeMinute) / 1000);
 		const baseTags = [
 			`account_id:${accountId}`,
 			`application_id:${group.dimensions.applicationId}`,
