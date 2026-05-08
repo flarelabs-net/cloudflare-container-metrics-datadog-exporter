@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { formatHealthMetrics, formatMetricsForContainer } from "../src/metrics";
+import { chunk } from "../src/utils";
 import {
 	createMockMetricsGroup,
 	mockContainers,
@@ -12,12 +13,9 @@ const TEST_TIMESTAMP = 1733414400; // 2024-12-05T16:00:00Z
 describe("formatMetricsForContainer", () => {
 	it("formats metrics for a single container", () => {
 		const container = { id: "app-123", name: "my-app", version: 1 };
-		const metrics = formatMetricsForContainer(
-			TEST_ACCOUNT_ID,
-			container,
-			[mockMetricsGroups[0]],
-			TEST_TIMESTAMP,
-		);
+		const metrics = formatMetricsForContainer(TEST_ACCOUNT_ID, container, [
+			mockMetricsGroups[0],
+		]);
 
 		// 5 CPU + 4 Memory + 5 Disk + 2 Bandwidth + 1 Uptime = 17 metrics per group
 		expect(metrics).toHaveLength(17);
@@ -29,7 +27,6 @@ describe("formatMetricsForContainer", () => {
 			TEST_ACCOUNT_ID,
 			container,
 			mockMetricsGroups, // 2 groups
-			TEST_TIMESTAMP,
 		);
 
 		// 2 groups * 17 metrics = 34 metrics
@@ -48,12 +45,9 @@ describe("formatMetricsForContainer", () => {
 			},
 		});
 
-		const metrics = formatMetricsForContainer(
-			TEST_ACCOUNT_ID,
-			container,
-			[group],
-			TEST_TIMESTAMP,
-		);
+		const metrics = formatMetricsForContainer(TEST_ACCOUNT_ID, container, [
+			group,
+		]);
 
 		const cpuMetric = metrics.find(
 			(m) =>
@@ -82,12 +76,9 @@ describe("formatMetricsForContainer", () => {
 			},
 		});
 
-		const metrics = formatMetricsForContainer(
-			TEST_ACCOUNT_ID,
-			container,
-			[group],
-			TEST_TIMESTAMP,
-		);
+		const metrics = formatMetricsForContainer(TEST_ACCOUNT_ID, container, [
+			group,
+		]);
 
 		const cpuMetric = metrics.find(
 			(m) =>
@@ -110,7 +101,6 @@ describe("formatMetricsForContainer", () => {
 			TEST_ACCOUNT_ID,
 			container,
 			[mockMetricsGroups[0]],
-			TEST_TIMESTAMP,
 			datadogTags,
 		);
 
@@ -136,7 +126,6 @@ describe("formatMetricsForContainer", () => {
 			TEST_ACCOUNT_ID,
 			container,
 			[mockMetricsGroups[0]],
-			TEST_TIMESTAMP,
 			invalidTags,
 		);
 
@@ -163,7 +152,6 @@ describe("formatMetricsForContainer", () => {
 			TEST_ACCOUNT_ID,
 			container,
 			[mockMetricsGroups[0]],
-			TEST_TIMESTAMP,
 			datadogTags,
 		);
 
@@ -183,7 +171,6 @@ describe("formatMetricsForContainer", () => {
 			TEST_ACCOUNT_ID,
 			container,
 			[mockMetricsGroups[0]],
-			TEST_TIMESTAMP,
 			undefined,
 		);
 
@@ -198,17 +185,67 @@ describe("formatMetricsForContainer", () => {
 
 	it("returns empty array for no metrics groups", () => {
 		const container = { id: "app-123", name: "my-app", version: 1 };
-		const metrics = formatMetricsForContainer(
+		const metrics = formatMetricsForContainer(TEST_ACCOUNT_ID, container, []);
+		expect(metrics).toHaveLength(0);
+	});
+
+	it("is deterministic", () => {
+		const container = { id: "app-123", name: "my-app", version: 1 };
+		const datadogTags = { env: "production", team: "platform" };
+
+		const first = formatMetricsForContainer(
 			TEST_ACCOUNT_ID,
 			container,
-			[],
-			TEST_TIMESTAMP,
+			mockMetricsGroups,
+			datadogTags,
 		);
-		expect(metrics).toHaveLength(0);
+		const second = formatMetricsForContainer(
+			TEST_ACCOUNT_ID,
+			container,
+			mockMetricsGroups,
+			datadogTags,
+		);
+
+		expect(second).toEqual(first);
 	});
 });
 
 describe("formatHealthMetrics", () => {
+	it("is deterministic when the caller provides a timestamp", () => {
+		vi.useFakeTimers();
+		try {
+			vi.setSystemTime(new Date("2026-04-06T10:43:00.000Z"));
+			const first = formatHealthMetrics(
+				TEST_ACCOUNT_ID,
+				mockContainers,
+				TEST_TIMESTAMP,
+			);
+
+			vi.setSystemTime(new Date("2026-04-06T10:44:00.000Z"));
+			const second = formatHealthMetrics(
+				TEST_ACCOUNT_ID,
+				mockContainers,
+				TEST_TIMESTAMP,
+			);
+
+			expect(second).toEqual(first);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("uses the provided timestamp for every health metric point", () => {
+		const metrics = formatHealthMetrics(
+			TEST_ACCOUNT_ID,
+			mockContainers,
+			TEST_TIMESTAMP,
+		);
+
+		for (const metric of metrics) {
+			expect(metric.points[0][0]).toBe(TEST_TIMESTAMP);
+		}
+	});
+
 	it("aggregates health across all containers", () => {
 		const metrics = formatHealthMetrics(
 			TEST_ACCOUNT_ID,

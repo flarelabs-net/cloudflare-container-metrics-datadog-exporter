@@ -1,14 +1,5 @@
-import { z } from "zod/v4";
 import type { DatadogMetric } from "./api/datadog";
-import type { Container, MetricsGroup } from "./types";
-
-export interface ContainerInfo {
-	id: string;
-	name: string;
-	version: number;
-}
-
-const DatadogTagsSchema = z.record(z.string(), z.string()).optional();
+import { type Container, DatadogTagsSchema, type MetricsGroup } from "./types";
 
 function parseCustomTags(datadogTags: unknown): string[] {
 	const parsed = DatadogTagsSchema.safeParse(datadogTags);
@@ -29,18 +20,15 @@ function parseCustomTags(datadogTags: unknown): string[] {
  */
 export function formatMetricsForContainer(
 	accountId: string,
-	container: ContainerInfo,
+	container: Container,
 	metricsGroups: MetricsGroup[],
-	timestamp?: number,
 	datadogTags?: unknown,
 ): DatadogMetric[] {
 	const customTags = parseCustomTags(datadogTags);
 	const metrics: DatadogMetric[] = [];
 
 	for (const group of metricsGroups) {
-		const ts =
-			timestamp ??
-			Math.floor(Date.parse(group.dimensions.datetimeMinute) / 1000);
+		const ts = Math.floor(Date.parse(group.dimensions.datetimeMinute) / 1000);
 		const baseTags = [
 			`account_id:${accountId}`,
 			`application_id:${group.dimensions.applicationId}`,
@@ -187,11 +175,10 @@ export function formatMetricsForContainer(
 export function formatHealthMetrics(
 	accountId: string,
 	containers: Container[],
-	timestamp?: number,
+	timestamp: number,
 	datadogTags?: unknown,
 ): DatadogMetric[] {
 	const customTags = parseCustomTags(datadogTags);
-	const ts = timestamp ?? Math.floor(Date.now() / 1000);
 	const baseTags = [`account_id:${accountId}`, ...customTags];
 	const metrics: DatadogMetric[] = [];
 
@@ -238,49 +225,49 @@ export function formatHealthMetrics(
 			{
 				metric: "cloudflare.containers.instances.active",
 				type: "gauge",
-				points: [[ts, active]],
+				points: [[timestamp, active]],
 				tags: appTags,
 			},
 			{
 				metric: "cloudflare.containers.instances.assigned",
 				type: "gauge",
-				points: [[ts, assigned]],
+				points: [[timestamp, assigned]],
 				tags: appTags,
 			},
 			{
 				metric: "cloudflare.containers.instances.healthy",
 				type: "gauge",
-				points: [[ts, healthy]],
+				points: [[timestamp, healthy]],
 				tags: appTags,
 			},
 			{
 				metric: "cloudflare.containers.instances.stopped",
 				type: "gauge",
-				points: [[ts, stopped]],
+				points: [[timestamp, stopped]],
 				tags: appTags,
 			},
 			{
 				metric: "cloudflare.containers.instances.failed",
 				type: "gauge",
-				points: [[ts, failed]],
+				points: [[timestamp, failed]],
 				tags: appTags,
 			},
 			{
 				metric: "cloudflare.containers.instances.scheduling",
 				type: "gauge",
-				points: [[ts, scheduling]],
+				points: [[timestamp, scheduling]],
 				tags: appTags,
 			},
 			{
 				metric: "cloudflare.containers.instances.starting",
 				type: "gauge",
-				points: [[ts, starting]],
+				points: [[timestamp, starting]],
 				tags: appTags,
 			},
 			{
 				metric: "cloudflare.containers.instances.max",
 				type: "gauge",
-				points: [[ts, maxInstances]],
+				points: [[timestamp, maxInstances]],
 				tags: appTags,
 			},
 		);
@@ -291,49 +278,49 @@ export function formatHealthMetrics(
 		{
 			metric: "cloudflare.containers.instances.total.active",
 			type: "gauge",
-			points: [[ts, totals.active]],
+			points: [[timestamp, totals.active]],
 			tags: baseTags,
 		},
 		{
 			metric: "cloudflare.containers.instances.total.assigned",
 			type: "gauge",
-			points: [[ts, totals.assigned]],
+			points: [[timestamp, totals.assigned]],
 			tags: baseTags,
 		},
 		{
 			metric: "cloudflare.containers.instances.total.healthy",
 			type: "gauge",
-			points: [[ts, totals.healthy]],
+			points: [[timestamp, totals.healthy]],
 			tags: baseTags,
 		},
 		{
 			metric: "cloudflare.containers.instances.total.stopped",
 			type: "gauge",
-			points: [[ts, totals.stopped]],
+			points: [[timestamp, totals.stopped]],
 			tags: baseTags,
 		},
 		{
 			metric: "cloudflare.containers.instances.total.failed",
 			type: "gauge",
-			points: [[ts, totals.failed]],
+			points: [[timestamp, totals.failed]],
 			tags: baseTags,
 		},
 		{
 			metric: "cloudflare.containers.instances.total.scheduling",
 			type: "gauge",
-			points: [[ts, totals.scheduling]],
+			points: [[timestamp, totals.scheduling]],
 			tags: baseTags,
 		},
 		{
 			metric: "cloudflare.containers.instances.total.starting",
 			type: "gauge",
-			points: [[ts, totals.starting]],
+			points: [[timestamp, totals.starting]],
 			tags: baseTags,
 		},
 		{
 			metric: "cloudflare.containers.instances.total.max",
 			type: "gauge",
-			points: [[ts, totals.maxInstances]],
+			points: [[timestamp, totals.maxInstances]],
 			tags: baseTags,
 		},
 	);
