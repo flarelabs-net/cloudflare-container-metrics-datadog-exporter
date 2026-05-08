@@ -3,7 +3,6 @@ import { z } from "zod/v4";
 // Container API Schemas
 
 const InstancesSchema = z.object({
-	durable_objects_active: z.number().optional(),
 	active: z.number().optional(),
 	assigned: z.number().optional(),
 	stopped: z.number().optional(),
@@ -13,13 +12,22 @@ const InstancesSchema = z.object({
 	scheduling: z.number().optional(),
 });
 
-const HealthSchema = z.looseObject({
-	instances: InstancesSchema.optional(),
+const ContainerHealthErrorSchema = z.object({
+	code: z.number().optional(),
+	message: z.string().optional(),
 });
+
+const HealthSchema = z.object({
+	instances: InstancesSchema.optional(),
+	errors: z.array(ContainerHealthErrorSchema).optional(),
+});
+
+export const DatadogTagsSchema = z.record(z.string(), z.string()).optional();
+export type DatadogTagsSchema = z.infer<typeof DatadogTagsSchema>;
 
 /** Container application from Cloudflare API */
 export type Container = z.infer<typeof Container>;
-export const Container = z.looseObject({
+export const Container = z.object({
 	id: z.string(),
 	name: z.string(),
 	version: z.number(),

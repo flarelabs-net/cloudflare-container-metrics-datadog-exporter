@@ -8,6 +8,7 @@ import pAll from "p-all";
 import { createCloudflareApi } from "./api/cloudflare";
 import { createDatadogApi } from "./api/datadog";
 import { formatHealthMetrics, formatMetricsForContainer } from "./metrics";
+import type { Container } from "./types";
 import { chunk } from "./utils";
 
 interface MetricsWorkflowParams {
@@ -86,76 +87,58 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<
 		});
 
 		const containers = await step.do(
-			"fetch containers",
+			"List Containers",
 			retryStepConfig,
-			async () => {
+			async (): Promise<Container[]> => {
 				const result = await cloudflare.listContainers();
 				console.log("Fetched containers", { count: result.length });
-
-				const healthMetrics = formatHealthMetrics(
-					this.env.CLOUDFLARE_ACCOUNT_ID,
-					result,
-					undefined,
-					this.env.DATADOG_TAGS,
-				);
-				await datadog.sendMetrics(healthMetrics);
-
-				return result.map((c) => ({
-					id: c.id,
-					name: c.name,
-					version: c.version,
-				}));
+				return result;
 			},
 		);
 
 		let totalMetrics = 0;
-
 		for (const container of containers) {
-			const count = await step.do(
-				`Download Metrics: ${container.name}`,
-				{
-					retries: {
-						limit: retryLimit > 0 ? 1 : 0,
-						delay: "45 seconds" as const,
-						backoff: "constant" as const,
-					},
-				},
-				async () => {
-					const metricsGroups = await cloudflare.getContainerMetrics(
-						container.id,
-						start,
-						end,
-					);
-
-					const metrics = formatMetricsForContainer(
-						this.env.CLOUDFLARE_ACCOUNT_ID,
-						container,
-						metricsGroups,
-						undefined,
-						this.env.DATADOG_TAGS,
-					);
-
-					const batches = chunk(metrics, batchSize);
-
-					await pAll(
-						batches.map(
-							(batch, i) => () =>
-								step.do(
-									`Export Metrics: ${container.name} batch ${i + 1}/${batches.length}`,
-									retryStepConfig,
-									async () => {
-										await datadog.sendMetrics(batch);
-									},
-								),
-						),
-						{ concurrency: 6 },
-					);
-
-					return metrics.length;
-				},
+			const metricsGroups = await step.do(
+				`Fetch Metrics: ${container.name}`,
+				retryStepConfig,
+				async () => cloudflare.getContainerMetrics(container.id, start, end),
 			);
-			totalMetrics += count;
+
+			const metrics = formatMetricsForContainer(
+				this.env.CLOUDFLARE_ACCOUNT_ID,
+				container,
+				metricsGroups,
+				this.env.DATADOG_TAGS,
+			);
+
+			const batches = chunk(metrics, batchSize);
+
+			await pAll(
+				batches.map(
+					(batch, i) => () =>
+						step.do(
+							`Export Metrics: ${container.name} Batch ${i + 1}/${batches.length}`,
+							retryStepConfig,
+							async () => {
+								await datadog.sendMetrics(batch);
+							},
+						),
+				),
+				{ concurrency: 6 },
+			);
+
+			totalMetrics += metrics.length;
 		}
+
+		await step.do("Export Health Metrics", retryStepConfig, async () => {
+			const healthMetrics = formatHealthMetrics(
+				this.env.CLOUDFLARE_ACCOUNT_ID,
+				containers,
+				Math.floor(scheduledTime / 1000),
+				this.env.DATADOG_TAGS,
+			);
+			await datadog.sendMetrics(healthMetrics);
+		});
 
 		return { status: "completed", metricsCount: totalMetrics };
 	}
