@@ -2,7 +2,7 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "cloudflare-container-metrics-datadog-exporter",
 	"main": "src/index.ts",
-	"compatibility_date": "2025-11-17",
+	"compatibility_date": "2026-04-21",
 	"workers_dev": false,
 	"preview_urls": false,
 	"observability": {
