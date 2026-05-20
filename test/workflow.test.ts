@@ -40,8 +40,14 @@ function makeEvent(
 	} as WorkflowEvent<MetricsWorkflowParams>;
 }
 
+// Workflows enforces a 1 MiB cap on step outputs
+const STEP_RESULT_LIMIT_BYTES = 1024 * 1024;
+
 class FakeStep {
-	private cache = new Map<string, unknown>();
+	private cache = new Map<
+		string,
+		{ kind: "value"; value: unknown } | { kind: "stream"; bytes: Uint8Array }
+	>();
 	public callOrder: string[] = [];
 	public attempts = new Map<string, number>();
 
@@ -52,8 +58,9 @@ class FakeStep {
 	): Promise<T> {
 		const fn = (body ?? configOrBody) as () => Promise<T>;
 		const config = body ? (configOrBody as WorkflowStepConfig) : undefined;
-		if (this.cache.has(name)) {
-			return this.cache.get(name) as T;
+		const cached = this.cache.get(name);
+		if (cached) {
+			return this.materialize<T>(cached);
 		}
 		this.callOrder.push(name);
 
@@ -63,14 +70,50 @@ class FakeStep {
 			this.attempts.set(name, (this.attempts.get(name) ?? 0) + 1);
 			try {
 				const result = await fn();
-				this.cache.set(name, result);
-				return result;
+				const entry = await this.persist(name, result);
+				this.cache.set(name, entry);
+				return this.materialize<T>(entry);
 			} catch (error) {
 				lastError = error;
 			}
 		}
 
 		throw lastError;
+	}
+
+	private async persist(
+		name: string,
+		result: unknown,
+	): Promise<
+		{ kind: "value"; value: unknown } | { kind: "stream"; bytes: Uint8Array }
+	> {
+		if (result instanceof ReadableStream) {
+			const bytes = new Uint8Array(await new Response(result).arrayBuffer());
+			return { kind: "stream", bytes };
+		}
+		if (result !== undefined) {
+			const serialized = JSON.stringify(result);
+			if (
+				serialized !== undefined &&
+				serialized.length > STEP_RESULT_LIMIT_BYTES
+			) {
+				throw new Error(
+					`Step ${name}: output is too large. Maximum allowed size is 1MiB.`,
+				);
+			}
+		}
+		return { kind: "value", value: result };
+	}
+
+	private materialize<T>(
+		entry:
+			| { kind: "value"; value: unknown }
+			| { kind: "stream"; bytes: Uint8Array },
+	): T {
+		if (entry.kind === "stream") {
+			return new Response(entry.bytes).body as unknown as T;
+		}
+		return entry.value as T;
 	}
 }
 
@@ -526,6 +569,44 @@ describe("MetricsExporterWorkflow", () => {
 					).toBe(false);
 				}
 			}
+		});
+	});
+
+	describe("large payloads", () => {
+		it("processes a Fetch Metrics step whose serialized output exceeds 1 MiB", async () => {
+			const groupsPerContainer = 2500;
+			const fetchMock = buildFetchMock({
+				containersList: [mockContainers[0]],
+				graphqlResponse: (appId) =>
+					buildMetricsResponse(appId, groupsPerContainer),
+			});
+			globalThis.fetch = fetchMock as typeof fetch;
+			const fakeStep = new FakeStep();
+
+			const result = await runWorkflow(
+				makeEnv({ BATCH_SIZE: 5000 }),
+				makeEvent(),
+				asWorkflowStep(fakeStep),
+			);
+
+			expect(result.status).toBe("completed");
+			// 17 Datadog metrics per group: 4 cpu (p50/p90/p99/max) + 1 cpu.time
+			// + 4 memory + 4 disk + 1 disk.available + 2 bandwidth + 1 uptime.
+			expect(result.metricsCount).toBe(groupsPerContainer * 17);
+
+			// Sanity-check that the payload really would have exceeded 1 MiB if it were not streamed
+			const sampleSize = JSON.stringify(
+				Array.from({ length: groupsPerContainer }, (_, i) => ({
+					...mockMetricsGroups[0],
+					dimensions: {
+						...mockMetricsGroups[0].dimensions,
+						placementId: `placement-${mockContainers[0].id}-${i}`,
+						deploymentId: `deployment-${mockContainers[0].id}-${i}`,
+						durableObjectId: `do-${mockContainers[0].id}-${i}`,
+					},
+				})),
+			).length;
+			expect(sampleSize).toBeGreaterThan(STEP_RESULT_LIMIT_BYTES);
 		});
 	});
 });

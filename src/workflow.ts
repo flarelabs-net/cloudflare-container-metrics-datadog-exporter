@@ -8,7 +8,7 @@ import pAll from "p-all";
 import { createCloudflareApi } from "./api/cloudflare";
 import { createDatadogApi } from "./api/datadog";
 import { formatHealthMetrics, formatMetricsForContainer } from "./metrics";
-import type { Container } from "./types";
+import type { Container, MetricsGroup } from "./types";
 import { chunk } from "./utils";
 
 interface MetricsWorkflowParams {
@@ -98,11 +98,22 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<
 
 		let totalMetrics = 0;
 		for (const container of containers) {
-			const metricsGroups = await step.do(
+			const metricsStream = await step.do(
 				`Fetch Metrics: ${container.name}`,
 				retryStepConfig,
-				async () => cloudflare.getContainerMetrics(container.id, start, end),
+				async () => {
+					const groups = await cloudflare.getContainerMetrics(
+						container.id,
+						start,
+						end,
+					);
+					return new Response(JSON.stringify(groups)).body;
+				},
 			);
+
+			const metricsGroups: MetricsGroup[] = await new Response(
+				metricsStream,
+			).json();
 
 			const metrics = formatMetricsForContainer(
 				this.env.CLOUDFLARE_ACCOUNT_ID,
@@ -119,9 +130,7 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<
 						step.do(
 							`Export Metrics: ${container.name} Batch ${i + 1}/${batches.length}`,
 							retryStepConfig,
-							async () => {
-								await datadog.sendMetrics(batch);
-							},
+							async () => await datadog.sendMetrics(batch),
 						),
 				),
 				{ concurrency: 6 },
