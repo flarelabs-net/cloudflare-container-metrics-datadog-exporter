@@ -8,14 +8,12 @@
 	"observability": {
 		"enabled": true
 	},
-	"triggers": {
-		"crons": ["* * * * *"]
-	},
 	"workflows": [
 		{
 			"binding": "METRICS_WORKFLOW",
 			"class_name": "MetricsExporterWorkflow",
-			"name": "metrics-exporter-workflow"
+			"name": "metrics-exporter-workflow",
+			"schedules": ["* * * * *"]
 		}
 	],
 	"durable_objects": {

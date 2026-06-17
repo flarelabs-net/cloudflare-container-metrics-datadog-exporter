@@ -4,6 +4,7 @@ import {
 	type WorkflowStep,
 	type WorkflowStepConfig,
 } from "cloudflare:workers";
+import { NonRetryableError } from "cloudflare:workflows";
 import pAll from "p-all";
 import { createCloudflareApi } from "./api/cloudflare";
 import { createDatadogApi } from "./api/datadog";
@@ -14,6 +15,12 @@ import { chunk } from "./utils";
 interface MetricsWorkflowParams {
 	scheduledTime?: number;
 }
+
+const REQUIRED_ENV_VARS = [
+	"CLOUDFLARE_API_TOKEN",
+	"CLOUDFLARE_ACCOUNT_ID",
+	"DATADOG_API_KEY",
+] as const;
 
 /**
  * Calculate the metrics time window.
@@ -40,6 +47,15 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<
 	MetricsWorkflowParams
 > {
 	async run(event: WorkflowEvent<MetricsWorkflowParams>, step: WorkflowStep) {
+		// Fail fast on misconfiguration. Retrying won't fix a missing secret,
+		// so surface it as a non-retryable error instead of burning attempts.
+		const missing = REQUIRED_ENV_VARS.filter((key) => !this.env[key]);
+		if (missing.length > 0) {
+			throw new NonRetryableError(
+				`Missing required environment variables: ${missing.join(", ")}`,
+			);
+		}
+
 		const batchSize = this.env.BATCH_SIZE ?? 5000;
 		const retryLimit = this.env.RETRY_LIMIT ?? 3;
 		const retryDelaySeconds = this.env.RETRY_DELAY_SECONDS ?? 1;
@@ -52,8 +68,12 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<
 			},
 		};
 
+		// Scheduled instances expose the trigger time on `event.schedule`.
+		// Fall back to params (manual triggers) and finally the instance timestamp.
 		const scheduledTime =
-			event.payload?.scheduledTime ?? event.timestamp.getTime();
+			event.schedule?.scheduledTime ??
+			event.payload?.scheduledTime ??
+			event.timestamp.getTime();
 
 		// Create a fetcher that proxies requests through a Durable Object in a specific jurisdiction
 		// This ensures GraphQL queries run close to the data source
