@@ -68,12 +68,17 @@ These tags will be added to all health and resource metrics sent to Datadog.
 ```bash
 npx wrangler dev
 ```
-In another terminal run:
+In another terminal, trigger a workflow instance manually:
 
 ```
-curl "http://localhost:8787/cdn-cgi/handler/scheduled"
+npx wrangler workflows trigger metrics-exporter-workflow --local
 ```
-You should see an "Ok" response from the curl and logs from the exporter.
+You should see logs from the exporter in the `wrangler dev` terminal.
+
+The workflow otherwise runs automatically every minute via the `schedules` configured on the Workflow binding in `wrangler.jsonc`.
+
+
+Alternatively, you can hit "e" in the same terminal as your wrangler dev to take you to a local explorer dashboard. From there, manually trigger the workflow.
 
 ### Deploy
 
@@ -151,7 +156,7 @@ See [Datadog's documentation](https://docs.datadoghq.com/dashboards/configure/#c
 
 ## Workflow Behavior
 
-The exporter runs as a Cloudflare Workflow triggered every minute via cron. Each workflow step uses configurable retry settings:
+The exporter runs as a Cloudflare Workflow triggered every minute by a [scheduled Workflow](https://developers.cloudflare.com/workflows/build/trigger-workflows/#schedule-a-workflow-directly) (the `schedules` array on the Workflow binding in `wrangler.jsonc`). The platform creates a new Workflow instance on each cron firing — no separate `scheduled` Worker handler is required. Each workflow step uses configurable retry settings:
 
 - **Retries**: Configurable via `RETRY_LIMIT` (default: 3 attempts)
 - **Delay**: Configurable via `RETRY_DELAY_SECONDS` (default: 1 second initial delay)

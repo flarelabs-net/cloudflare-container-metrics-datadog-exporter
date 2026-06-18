@@ -35,9 +35,10 @@ function makeEvent(
 ): WorkflowEvent<MetricsWorkflowParams> {
 	return {
 		instanceId: "test-instance",
-		payload: { scheduledTime },
+		payload: {},
 		timestamp: new Date(scheduledTime),
-	} as WorkflowEvent<MetricsWorkflowParams>;
+		schedule: { cron: "* * * * *", scheduledTime },
+	} as unknown as WorkflowEvent<MetricsWorkflowParams>;
 }
 
 // Workflows enforces a 1 MiB cap on step outputs
@@ -607,6 +608,26 @@ describe("MetricsExporterWorkflow", () => {
 				})),
 			).length;
 			expect(sampleSize).toBeGreaterThan(STEP_RESULT_LIMIT_BYTES);
+		});
+	});
+
+	describe("env validation", () => {
+		it("fails fast with a non-retryable error when required env vars are missing", async () => {
+			const fetchMock = buildFetchMock();
+			globalThis.fetch = fetchMock as typeof fetch;
+			const fakeStep = new FakeStep();
+
+			await expect(
+				runWorkflow(
+					makeEnv({ CLOUDFLARE_API_TOKEN: "", DATADOG_API_KEY: "" }),
+					makeEvent(),
+					asWorkflowStep(fakeStep),
+				),
+			).rejects.toThrow(/Missing required environment variables/);
+
+			// Validation runs before any work, so no steps or fetches occur.
+			expect(fakeStep.callOrder).toHaveLength(0);
+			expect(fetchMock).not.toHaveBeenCalled();
 		});
 	});
 });
