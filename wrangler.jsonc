@@ -37,6 +37,7 @@
 		"JURISDICTION": "",
 		"DATADOG_TAGS": {
 			"env": "sandbox"
-		}
+		},
+		"APPLICATION_NAME_TAGS": {}
 	}
 }

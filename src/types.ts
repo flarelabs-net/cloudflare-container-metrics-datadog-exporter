@@ -25,6 +25,11 @@ const HealthSchema = z.object({
 export const DatadogTagsSchema = z.record(z.string(), z.string()).optional();
 export type DatadogTagsSchema = z.infer<typeof DatadogTagsSchema>;
 
+/** Tag key to a regex whose first capture group, matched against the application name, is the tag value */
+export const ApplicationNameTagsSchema = z
+	.record(z.string(), z.string())
+	.optional();
+
 /** Container application from Cloudflare API */
 export type Container = z.infer<typeof Container>;
 export const Container = z.object({
