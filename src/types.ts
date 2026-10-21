@@ -30,7 +30,9 @@ export type Container = z.infer<typeof Container>;
 export const Container = z.object({
 	id: z.string(),
 	name: z.string(),
-	version: z.number(),
+	// Applications using Durable Object scheduling (scheduling_policy
+	// "durable_object") have no version.
+	version: z.number().optional(),
 	instances: z.number().optional(),
 	max_instances: z.number().optional(),
 	health: HealthSchema.optional(),
