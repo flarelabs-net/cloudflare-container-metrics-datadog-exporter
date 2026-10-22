@@ -86,7 +86,9 @@ export function formatMetricsForContainer(
 			`account_id:${accountId}`,
 			`application_id:${group.dimensions.applicationId}`,
 			`application_name:${container.name}`,
-			`version:${container.version}`,
+			...(container.version !== undefined
+				? [`version:${container.version}`]
+				: []),
 			`instance_id:${group.dimensions.durableObjectId ?? group.dimensions.deploymentId}`,
 			`deployment_id:${group.dimensions.deploymentId}`,
 			`placement_id:${group.dimensions.placementId}`,

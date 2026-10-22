@@ -94,6 +94,20 @@ describe("formatMetricsForContainer", () => {
 		expect(cpuMetric?.tags).toContain("instance_id:instance-test");
 	});
 
+	it("omits version tag when the application has none", () => {
+		const container = { id: "app-123", name: "my-app" };
+		const group = createMockMetricsGroup();
+
+		const metrics = formatMetricsForContainer(TEST_ACCOUNT_ID, container, [
+			group,
+		]);
+
+		expect(metrics.length).toBeGreaterThan(0);
+		for (const metric of metrics) {
+			expect(metric.tags.some((t) => t.startsWith("version:"))).toBe(false);
+		}
+	});
+
 	it("includes custom tags when provided", () => {
 		const container = { id: "app-123", name: "my-app", version: 1 };
 		const datadogTags = { env: "production", team: "platform" };

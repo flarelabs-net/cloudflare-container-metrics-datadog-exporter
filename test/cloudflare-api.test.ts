@@ -56,6 +56,44 @@ describe("CloudflareApi", () => {
 			);
 		});
 
+		it("lists applications that use Durable Object scheduling", async () => {
+			const customFetcher = vi.fn().mockResolvedValue(
+				new Response(
+					JSON.stringify({
+						success: true,
+						result: [
+							{
+								id: "app-default",
+								name: "default-app",
+								version: 2,
+								instances: 7,
+								max_instances: 20,
+								health: { instances: { active: 230, healthy: 0 } },
+							},
+							{
+								// The shape the API returns for scheduling_policy "durable_object":
+								// no version, instances or max_instances.
+								id: "app-do",
+								name: "do-app",
+								scheduling_policy: "durable_object",
+								health: { instances: { active: 324, starting: 2 } },
+							},
+						],
+					}),
+				),
+			);
+
+			const api = createCloudflareApi(
+				"test-account",
+				"test-token",
+				customFetcher,
+			);
+			const containers = await api.listContainers();
+
+			expect(containers.map((c) => c.name)).toEqual(["default-app", "do-app"]);
+			expect(containers[1]?.version).toBeUndefined();
+		});
+
 		it("sets a descriptive user agent on GraphQL requests", async () => {
 			const customFetcher = vi.fn().mockResolvedValue(
 				new Response(
