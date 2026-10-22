@@ -140,6 +140,7 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<
 				container,
 				metricsGroups,
 				this.env.DATADOG_TAGS,
+				this.env.APPLICATION_NAME_TAGS,
 			);
 
 			const batches = chunk(metrics, batchSize);
@@ -165,6 +166,7 @@ export class MetricsExporterWorkflow extends WorkflowEntrypoint<
 				containers,
 				Math.floor(scheduledTime / 1000),
 				this.env.DATADOG_TAGS,
+				this.env.APPLICATION_NAME_TAGS,
 			);
 			await datadog.sendMetrics(healthMetrics);
 		});

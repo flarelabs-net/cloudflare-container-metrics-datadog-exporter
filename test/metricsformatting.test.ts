@@ -369,3 +369,101 @@ describe("formatHealthMetrics", () => {
 		}
 	});
 });
+
+describe("APPLICATION_NAME_TAGS", () => {
+	const shardRule = { app_group: "^(.+?)(?:-s\\d+)?$" };
+
+	it("tags resource metrics with the capture group of the application name", () => {
+		for (const name of ["my-app", "my-app-s1", "my-app-s15"]) {
+			const metrics = formatMetricsForContainer(
+				TEST_ACCOUNT_ID,
+				{ id: "app-123", name, version: 1 },
+				[mockMetricsGroups[0]],
+				undefined,
+				shardRule,
+			);
+			for (const metric of metrics) {
+				expect(metric.tags).toContain("app_group:my-app");
+				expect(metric.tags).toContain(`application_name:${name}`);
+			}
+		}
+	});
+
+	it("tags per-application health metrics but not the account totals", () => {
+		const containers = [
+			{ id: "a", name: "my-app", version: 1, max_instances: 10 },
+			{ id: "b", name: "my-app-s2", version: 1, max_instances: 10 },
+		];
+		const metrics = formatHealthMetrics(
+			TEST_ACCOUNT_ID,
+			containers,
+			TEST_TIMESTAMP,
+			undefined,
+			shardRule,
+		);
+		const perApp = metrics.filter((m) => !m.metric.includes(".total."));
+		const totals = metrics.filter((m) => m.metric.includes(".total."));
+		expect(perApp.length).toBeGreaterThan(0);
+		for (const metric of perApp) {
+			expect(metric.tags).toContain("app_group:my-app");
+		}
+		for (const metric of totals) {
+			expect(metric.tags.some((t) => t.startsWith("app_group:"))).toBe(false);
+		}
+	});
+
+	it("adds nothing when the pattern does not match", () => {
+		const metrics = formatHealthMetrics(
+			TEST_ACCOUNT_ID,
+			[{ id: "a", name: "other", version: 1 }],
+			TEST_TIMESTAMP,
+			undefined,
+			{ app_group: "^my-(.+)$" },
+		);
+		for (const metric of metrics) {
+			expect(metric.tags.some((t) => t.startsWith("app_group:"))).toBe(false);
+		}
+	});
+
+	it("ignores an invalid pattern and keeps the valid ones", () => {
+		const consoleWarnSpy = vi
+			.spyOn(console, "warn")
+			.mockImplementation(() => {});
+		const metrics = formatHealthMetrics(
+			TEST_ACCOUNT_ID,
+			[{ id: "a", name: "my-app-s3", version: 1 }],
+			TEST_TIMESTAMP,
+			undefined,
+			{ broken: "(", ...shardRule },
+		);
+		const active = metrics.find(
+			(m) => m.metric === "cloudflare.containers.instances.active",
+		);
+		expect(active?.tags).toContain("app_group:my-app");
+		expect(active?.tags.some((t) => t.startsWith("broken:"))).toBe(false);
+		expect(consoleWarnSpy).toHaveBeenCalledWith(
+			"Invalid APPLICATION_NAME_TAGS pattern, ignoring tag",
+			expect.objectContaining({ key: "broken" }),
+		);
+		consoleWarnSpy.mockRestore();
+	});
+
+	it("ignores a config that is not a string map", () => {
+		const consoleWarnSpy = vi
+			.spyOn(console, "warn")
+			.mockImplementation(() => {});
+		const metrics = formatHealthMetrics(
+			TEST_ACCOUNT_ID,
+			[{ id: "a", name: "my-app", version: 1 }],
+			TEST_TIMESTAMP,
+			undefined,
+			{ app_group: 123 },
+		);
+		expect(metrics.length).toBeGreaterThan(0);
+		expect(consoleWarnSpy).toHaveBeenCalledWith(
+			"Invalid APPLICATION_NAME_TAGS format, ignoring application name tags",
+			expect.objectContaining({ error: expect.any(String) }),
+		);
+		consoleWarnSpy.mockRestore();
+	});
+});

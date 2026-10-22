@@ -7,6 +7,7 @@ interface __BaseEnv_Env {
 	RETRY_DELAY_SECONDS: number;
 	JURISDICTION: string;
 	DATADOG_TAGS: object;
+	APPLICATION_NAME_TAGS: object;
 	CLOUDFLARE_ACCOUNT_ID: string;
 	CLOUDFLARE_API_TOKEN: string;
 	DATADOG_API_KEY: string;

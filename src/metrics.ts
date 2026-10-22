@@ -1,5 +1,10 @@
 import type { DatadogMetric } from "./api/datadog";
-import { type Container, DatadogTagsSchema, type MetricsGroup } from "./types";
+import {
+	ApplicationNameTagsSchema,
+	type Container,
+	DatadogTagsSchema,
+	type MetricsGroup,
+} from "./types";
 
 function parseCustomTags(datadogTags: unknown): string[] {
 	const parsed = DatadogTagsSchema.safeParse(datadogTags);
@@ -15,6 +20,49 @@ function parseCustomTags(datadogTags: unknown): string[] {
 	return Object.entries(parsed.data).map(([key, value]) => `${key}:${value}`);
 }
 
+type ApplicationNameTagRule = { key: string; pattern: RegExp };
+
+function parseApplicationNameTags(config: unknown): ApplicationNameTagRule[] {
+	const parsed = ApplicationNameTagsSchema.safeParse(config);
+	if (!parsed.success) {
+		console.warn(
+			"Invalid APPLICATION_NAME_TAGS format, ignoring application name tags",
+			{ error: parsed.error.message },
+		);
+		return [];
+	}
+	const rules: ApplicationNameTagRule[] = [];
+	for (const [key, source] of Object.entries(parsed.data ?? {})) {
+		try {
+			rules.push({ key, pattern: new RegExp(source) });
+		} catch (error) {
+			console.warn("Invalid APPLICATION_NAME_TAGS pattern, ignoring tag", {
+				key,
+				error: String(error),
+			});
+		}
+	}
+	return rules;
+}
+
+/**
+ * Tags derived from an application name: each rule's first capture group
+ * becomes the tag value, and a rule that does not match adds nothing.
+ */
+function applicationNameTags(
+	rules: ApplicationNameTagRule[],
+	name: string,
+): string[] {
+	const tags: string[] = [];
+	for (const { key, pattern } of rules) {
+		const value = pattern.exec(name)?.[1];
+		if (value) {
+			tags.push(`${key}:${value}`);
+		}
+	}
+	return tags;
+}
+
 /**
  * Format metrics for a single container into Datadog metrics
  */
@@ -23,8 +71,13 @@ export function formatMetricsForContainer(
 	container: Container,
 	metricsGroups: MetricsGroup[],
 	datadogTags?: unknown,
+	applicationNameTagsConfig?: unknown,
 ): DatadogMetric[] {
 	const customTags = parseCustomTags(datadogTags);
+	const nameTags = applicationNameTags(
+		parseApplicationNameTags(applicationNameTagsConfig),
+		container.name,
+	);
 	const metrics: DatadogMetric[] = [];
 
 	for (const group of metricsGroups) {
@@ -40,6 +93,7 @@ export function formatMetricsForContainer(
 			...(group.dimensions.durableObjectId
 				? [`durable_object_id:${group.dimensions.durableObjectId}`]
 				: []),
+			...nameTags,
 			...customTags,
 		];
 
@@ -177,8 +231,10 @@ export function formatHealthMetrics(
 	containers: Container[],
 	timestamp: number,
 	datadogTags?: unknown,
+	applicationNameTagsConfig?: unknown,
 ): DatadogMetric[] {
 	const customTags = parseCustomTags(datadogTags);
+	const nameTagRules = parseApplicationNameTags(applicationNameTagsConfig);
 	const baseTags = [`account_id:${accountId}`, ...customTags];
 	const metrics: DatadogMetric[] = [];
 
@@ -198,6 +254,7 @@ export function formatHealthMetrics(
 			...baseTags,
 			`application_id:${container.id}`,
 			`application_name:${container.name}`,
+			...applicationNameTags(nameTagRules, container.name),
 		];
 
 		const instances = container.health?.instances;

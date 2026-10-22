@@ -63,6 +63,20 @@ Add custom tags to all metrics by setting the `DATADOG_TAGS` variable in `wrangl
 
 These tags will be added to all health and resource metrics sent to Datadog.
 
+#### Optional: Tags Derived From the Application Name
+
+To tag metrics with a value taken from each application's name, set `APPLICATION_NAME_TAGS` to a map of tag key to regular expression. The first capture group becomes the tag value, and an application whose name does not match gets no tag. This is useful for grouping applications that share a naming scheme, for example shards named `my-app`, `my-app-s1`, `my-app-s2`:
+
+```jsonc
+"vars": {
+  "APPLICATION_NAME_TAGS": {
+    "app_group": "^(.+?)(?:-s\\d+)?$"
+  }
+}
+```
+
+Every per-application health and resource metric for those three applications then carries `app_group:my-app`, so one query (`app_group:my-app`) covers all of them. Account-wide totals are not tagged.
+
 ### Verify
 
 ```bash
@@ -173,3 +187,4 @@ Steps will automatically retry on transient failures (API errors, network issues
 | `RETRY_DELAY_SECONDS` | number | 1 | Initial delay in seconds before retry (exponential backoff) |
 | `JURISDICTION` | string | "" | Durable Object jurisdiction for GraphQL queries (e.g., "eu", "fedramp") |
 | `DATADOG_TAGS` | object | {} | Custom tags to add to all metrics |
+| `APPLICATION_NAME_TAGS` | object | {} | Tag key to regex; the first capture group of a match against the application name becomes the tag value |

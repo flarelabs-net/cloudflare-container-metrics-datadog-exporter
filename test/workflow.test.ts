@@ -26,6 +26,7 @@ function makeEnv(overrides: Partial<Env> = {}): Env {
 		RETRY_DELAY_SECONDS: 1,
 		JURISDICTION: "",
 		DATADOG_TAGS: {},
+		APPLICATION_NAME_TAGS: {},
 		...overrides,
 	} as unknown as Env;
 }
@@ -420,6 +421,45 @@ describe("MetricsExporterWorkflow", () => {
 					Date.parse(mockMetricsGroups[0].dimensions.datetimeMinute) / 1000,
 				),
 			);
+		});
+
+		it("tags every per-application series from APPLICATION_NAME_TAGS", async () => {
+			const datadogPayloads: DatadogMetric[][] = [];
+			const fetchMock = buildFetchMock({
+				containersList: [
+					{ ...mockContainers[0], id: "app-base", name: "my-app" },
+					{ ...mockContainers[0], id: "app-shard", name: "my-app-s7" },
+				],
+				datadogResponse: (payload) => {
+					datadogPayloads.push(payload.series);
+					return new Response(null, { status: 202 });
+				},
+			});
+			globalThis.fetch = fetchMock as typeof fetch;
+
+			await runWorkflow(
+				makeEnv({
+					BATCH_SIZE: 1000,
+					APPLICATION_NAME_TAGS: { app_group: "^(.+?)(?:-s\\d+)?$" },
+				}),
+				makeEvent(),
+				asWorkflowStep(new FakeStep()),
+			);
+
+			const series = datadogPayloads.flat();
+			const perApp = series.filter((m) => !m.metric.includes(".total."));
+			expect(perApp.some((m) => m.metric === "cloudflare.containers.cpu")).toBe(
+				true,
+			);
+			expect(
+				perApp.some((m) => m.metric === "cloudflare.containers.instances.max"),
+			).toBe(true);
+			for (const metric of perApp) {
+				expect(metric.tags).toContain("app_group:my-app");
+			}
+			for (const metric of series.filter((m) => m.metric.includes(".total."))) {
+				expect(metric.tags.some((t) => t.startsWith("app_group:"))).toBe(false);
+			}
 		});
 
 		it("does not re-send any Datadog batch successfully accepted on a prior attempt", async () => {
